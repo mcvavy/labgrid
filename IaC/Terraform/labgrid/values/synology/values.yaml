@@ -1,0 +1,41 @@
+clientInfoSecret:
+  name: "client-info-secret"
+
+storageClasses:
+  iscsi-delete:
+    ## Optional: `true` or `false` (default):
+    #disabled: false
+    ## Optional: `true` or `false` (default):
+    #isDefault: false
+    ## If not present, some location will be chosen to create volumes with the filesystem type ext4.
+    ## Note that these parameters cannot get updated once deployed - any subsequent changes get ignored!
+    parameters:
+      # dsm: 192.168.1.1            # optional: needs to be present in the client-info secret
+      # formatOptions: --no-discard # optional (iSCSI only): mkfs.* options
+      # fsType: ext4                # optional (iSCSI only): `btrfs` or `ext4` (default)
+      location: /volume1          # optional, defaults to your primary volume
+      # mountPermissions: '0750'    # optional: (NFS only) mounted folder permissions
+    protocol: iscsi             # optional: 'nfs', `smb` or `iscsi` (default)
+    reclaimPolicy: Delete
+    # Do you want this storage class to be included in the Helm test?
+    test: true
+    ## Optional: `WaitForFirstConsumer` or `Immediate` (default):
+    #volumeBindingMode: Immediate
+  iscsi-retain:
+    reclaimPolicy: Retain
+  nfs-delete:
+    disabled: true
+    test: false
+  nfs-retain:
+    disabled: true
+    test: false
+  smb-delete:
+    disabled: true
+    test: false
+  smb-retain:
+    disabled: true
+    test: false
+test:
+  affinity: { }
+  nodeSelector: { }
+  tolerations: [ ]

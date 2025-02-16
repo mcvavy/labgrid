@@ -1,0 +1,71 @@
+globalArguments:
+  - "--global.sendanonymoususage=false"
+  - "--global.checknewversion=false"
+
+additionalArguments:
+  - "--serversTransport.insecureSkipVerify=true"
+  - "--log.level=INFO"
+
+deployment:
+  enabled: true
+  replicas: 3
+  annotations: {}
+  podAnnotations: {}
+  additionalContainers: []
+  initContainers: []
+
+##
+# Ports
+##
+# In Traefik Chart v34+, `expose` (if used) must be an object with `enabled: true|false`.
+# If you just want a single Service that listens on ports 80 and 443, you can omit `expose` entirely.
+ports:
+  web:
+    port: 80
+    # omit expose entirely, or set expose.enabled = false if you prefer
+  websecure:
+    port: 443
+    tls:
+      enabled: true
+
+##
+# Configure the actual Traefik entryPoints (this is how you do HTTP->HTTPS redirect now)
+##
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+    http:
+      tls: {}
+      
+ingressRoute:
+  dashboard:
+    enabled: false
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    ingressClass: traefik-external
+  kubernetesIngress:
+    enabled: true
+    publishedService:
+      enabled: false
+
+rbac:
+  enabled: true
+
+service:
+  enabled: true
+  type: LoadBalancer
+  annotations: {}
+  labels: {}
+  spec:
+    loadBalancerIP: 192.168.1.254 # this should be an IP in the MetalLB range
+  loadBalancerSourceRanges: []
+  externalIPs: []
