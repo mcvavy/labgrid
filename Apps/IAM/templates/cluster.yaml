@@ -83,10 +83,10 @@ spec:
               type: {{ $additional.serviceTemplate.spec.type | quote }}
 {{- end }}
 
-  affinity:
-    enablePodAntiAffinity: {{ .Values.postgresCluster.affinity.enablePodAntiAffinity | quote }}
-    topologyKey: {{ .Values.postgresCluster.affinity.topologyKey | quote }}
+#   affinity:
+#     enablePodAntiAffinity: {{ .Values.postgresCluster.affinity.enablePodAntiAffinity | quote }}
+#     topologyKey: {{ .Values.postgresCluster.affinity.topologyKey | quote }}
 
-  nodeMaintenanceWindow:
-    inProgress: {{ .Values.postgresCluster.nodeMaintenanceWindow.inProgress }}
-    reusePVC: {{ .Values.postgresCluster.nodeMaintenanceWindow.reusePVC }}
+#   nodeMaintenanceWindow:
+#     inProgress: {{ .Values.postgresCluster.nodeMaintenanceWindow.inProgress }}
+#     reusePVC: {{ .Values.postgresCluster.nodeMaintenanceWindow.reusePVC }}
