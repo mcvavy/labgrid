@@ -59,6 +59,18 @@ variable "synologyServiceAccountPassword" {
   sensitive = true
 }
 
+variable "argocdServerAddress" {
+  description = "ArgoCD server address"
+  default = "argocd.labgrid.net"
+}
+
+variable "argocdAuthToken" {
+  description = "ArgoCD auth token"
+  sensitive = true
+}
+
+
+
 variable "environment" {
   description = "Environment"
   validation {

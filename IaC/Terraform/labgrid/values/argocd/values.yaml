@@ -1,9 +1,19 @@
 
 # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
+global:
+  domain: argocd.labgrid.net
+
 configs:
   cm:
     exec.enabled: true
+    # https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/#create-new-user
+    accounts.labgrid-user: "apiKey, login"
+
+  rbac:
+    create: true
+    policy.csv: |
+      g, labgrid-user, role:admin
   params:
     server.insecure: true
 
