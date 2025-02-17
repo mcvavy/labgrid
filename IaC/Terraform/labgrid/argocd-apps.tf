@@ -3,12 +3,22 @@ resource "argocd_repository" "labgrid-git" {
   repo = "https://github.com/mcvavy/labgrid.git"
 }
 
-resource "argocd_application" "vbox_admin_tool" {
+resource "kubernetes_manifest" "labgrid-iam-namespace" {
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Namespace"
+    metadata = {
+      name = "labgrid-iam-system"
+    }
+  }
+}
+
+resource "argocd_application" "labgrid-iam" {
     
-  depends_on = [ argocd_repository.labgrid-git ]
+  depends_on = [ argocd_repository.labgrid-git, kubernetes_manifest.labgrid-iam-namespace ]
 
   metadata {
-    name      = "vbox-admin-tool"
+    name      = "labgrid-iam"
     namespace = "argocd"
   }
 
