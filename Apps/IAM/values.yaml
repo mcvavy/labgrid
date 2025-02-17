@@ -93,6 +93,7 @@ keycloakCertificate:
   commonName: "iam.local.labgrid.net"
   dnsNames:
     - "iam.labgrid.net"
+    - "iam.local.labgrid.net"
 
 
 pgcluster:
