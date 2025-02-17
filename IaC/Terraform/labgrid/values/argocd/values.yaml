@@ -1,3 +1,6 @@
+
+# https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
+
 configs:
   cm:
     exec.enabled: true
@@ -8,7 +11,9 @@ server:
   certificate:
     enabled: true
     secretName: argocd-server-tls
-    domain: "labgrid.net"
+    domain: "argocd.local.labgrid.net"
+    additionalHosts:
+      - argocd.labgrid.net
 
     issuer:
       group: "cert-manager.io"

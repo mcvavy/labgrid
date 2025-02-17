@@ -2,6 +2,11 @@ terraform {
     required_version = ">= 1.0.0"
     required_providers {
 
+    argocd = {
+      source = "argoproj-labs/argocd"
+      version = "7.3.1"
+    }
+
     azurerm = {
         source  = "hashicorp/azurerm"
         version = "~>4.0"
@@ -15,11 +20,6 @@ terraform {
     helm = {
         source  = "hashicorp/helm"
         version = "2.16.1"
-    }
-
-    argocd = {
-        source  = "argoproj-labs/argocd"
-        version = "7.0.3"
     }
 
     null = {

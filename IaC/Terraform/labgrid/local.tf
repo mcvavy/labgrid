@@ -30,7 +30,7 @@ locals {
   argocdSettings = {
     name          = "argo-cd"
     namespace     = "argocd"
-    chart_version = "7.6.12"
+    chart_version = "7.8.2"
     repository    = "https://argoproj.github.io/argo-helm"
   }
 
@@ -42,7 +42,6 @@ locals {
   }
 
   clusterIssuerSettings = {
-    //name          = var.environment == "prod" ? "letsencrypt-production" : "letsencrypt-staging"
     name          = "letsencrypt"
     server        = var.environment == "prod" ? "https://acme-v02.api.letsencrypt.org/directory" : "https://acme-staging-v02.api.letsencrypt.org/directory"
     namespace     = "cert-manager"

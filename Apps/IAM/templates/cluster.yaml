@@ -1,0 +1,92 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ .Values.postgresCluster.name | quote }}
+  namespace: {{ .Release.Namespace | default .Values.namespaceOverride }}
+  labels:
+    app.kubernetes.io/component: {{ .Values.postgresCluster.name | quote }}
+    app.kubernetes.io/name: {{ .Chart.Name | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+spec:
+  description: {{ .Values.postgresCluster.description | quote }}
+  imageName: {{ .Values.postgresCluster.imageName | quote }}
+  instances: {{ .Values.postgresCluster.instances }}
+  startDelay: {{ .Values.postgresCluster.startDelay }}
+  stopDelay: {{ .Values.postgresCluster.stopDelay }}
+  primaryUpdateStrategy: {{ .Values.postgresCluster.primaryUpdateStrategy | quote }}
+
+  postgresql:
+    parameters:
+      shared_buffers: {{ .Values.postgresCluster.postgresql.parameters.shared_buffers | quote }}
+      pg_stat_statements.max: {{ .Values.postgresCluster.postgresql.parameters.pg_stat_statements.max | quote }}
+      pg_stat_statements.track: {{ .Values.postgresCluster.postgresql.parameters.pg_stat_statements.track | quote }}
+      auto_explain.log_min_duration: {{ .Values.postgresCluster.postgresql.parameters.auto_explain.log_min_duration | quote }}
+
+  bootstrap:
+    initdb:
+      database: {{ .Values.postgresCluster.bootstrap.initdb.database | quote }}
+      owner: {{ .Values.postgresCluster.bootstrap.initdb.owner | quote }}
+      secret:
+        name: {{ .Values.postgresCluster.bootstrap.initdb.secret.name | quote }}
+
+  enableSuperuserAccess: {{ .Values.postgresCluster.enableSuperuserAccess | quote }}
+  superuserSecret:
+    name: {{ .Values.postgresCluster.superuserSecret.name | quote }}
+
+  storage:
+    storageClass: {{ .Values.postgresCluster.storage.storageClass | quote }}
+    size: {{ .Values.postgresCluster.storage.size | quote }}
+
+  backup:
+    barmanObjectStore:
+      destinationPath: {{ .Values.postgresCluster.backup.barmanObjectStore.destinationPath | quote }}
+      azureCredentials:
+        storageAccount:
+          name: {{ .Values.postgresCluster.backup.barmanObjectStore.azureCredentials.storageAccount.name | quote }}
+          key: {{ .Values.postgresCluster.backup.barmanObjectStore.azureCredentials.storageAccount.key | quote }}
+        storageSasToken:
+          name: {{ .Values.postgresCluster.backup.barmanObjectStore.azureCredentials.storageSasToken.name | quote }}
+          key: {{ .Values.postgresCluster.backup.barmanObjectStore.azureCredentials.storageSasToken.key | quote }}
+      wal:
+        compression: {{ .Values.postgresCluster.backup.barmanObjectStore.wal.compression | quote }}
+        encryption: {{ .Values.postgresCluster.backup.barmanObjectStore.wal.encryption | quote }}
+      data:
+        compression: {{ .Values.postgresCluster.backup.barmanObjectStore.data.compression | quote }}
+        encryption: {{ .Values.postgresCluster.backup.barmanObjectStore.data.encryption | quote }}
+    retentionPolicy: {{ .Values.postgresCluster.backup.retentionPolicy | quote }}
+
+  resources:
+    requests:
+      memory: {{ .Values.postgresCluster.resources.requests.memory | quote }}
+      cpu: {{ .Values.postgresCluster.resources.requests.cpu | quote }}
+    limits:
+      memory: {{ .Values.postgresCluster.resources.limits.memory | quote }}
+      cpu: {{ .Values.postgresCluster.resources.limits.cpu | quote }}
+
+  managed:
+    services:
+      disabledDefaultServices:
+{{- range $svc := .Values.postgresCluster.managed.services.disabledDefaultServices }}
+        - {{ $svc | quote }}
+{{- end }}
+      additional:
+{{- range $additional := .Values.postgresCluster.managed.services.additional }}
+        - selectorType: {{ $additional.selectorType | quote }}
+          serviceTemplate:
+            metadata:
+              name: {{ $additional.serviceTemplate.metadata.name | quote }}
+              labels:
+{{ toYaml $additional.serviceTemplate.metadata.labels | indent 16 }}
+              annotations:
+{{ toYaml $additional.serviceTemplate.metadata.annotations | indent 16 }}
+            spec:
+              type: {{ $additional.serviceTemplate.spec.type | quote }}
+{{- end }}
+
+  affinity:
+    enablePodAntiAffinity: {{ .Values.postgresCluster.affinity.enablePodAntiAffinity | quote }}
+    topologyKey: {{ .Values.postgresCluster.affinity.topologyKey | quote }}
+
+  nodeMaintenanceWindow:
+    inProgress: {{ .Values.postgresCluster.nodeMaintenanceWindow.inProgress }}
+    reusePVC: {{ .Values.postgresCluster.nodeMaintenanceWindow.reusePVC }}

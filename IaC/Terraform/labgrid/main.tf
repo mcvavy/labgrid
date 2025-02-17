@@ -56,24 +56,8 @@ resource "helm_release" "ingress_nginx" {
   namespace        = local.ingressNginxSettings.namespace
   create_namespace = true
 
-#   values = [file("nginx_ingress_values.yaml")]
-
   depends_on = [kubernetes_manifest.metallb_l2advertisement]
 }
-
-# resource "null_resource" "wait_for_ingress_nginx" {
-#   triggers = {
-#     key = uuid()
-#   }
-
-#   provisioner "local-exec" {
-#     interpreter = ["bash", "-c"]
-#     working_dir = path.module
-#     command     = "kubectl wait --namespace ${helm_release.ingress_nginx.namespace} --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s"
-#   }
-
-#   depends_on = [helm_release.ingress_nginx]
-# }
 
 
 resource "helm_release" "cert_manager" {
@@ -99,23 +83,6 @@ resource "helm_release" "cert_manager" {
 
   depends_on = [ helm_release.ingress_nginx ]
 }
-
-# resource "kubernetes_manifest" "cloudflare_token_secret" {
-#   manifest = {
-#     apiVersion = "v1"
-#     kind       = "Secret"
-#     metadata = {
-#       name      = "cloudflare-token-secret"
-#       namespace = local.certManagerSettings.namespace
-#     }
-#     type       = "Opaque"
-#     stringData = {
-#       cloudflare-token = var.cloudflareApiTokenKey
-#     }
-#   }
-
-#     depends_on = [helm_release.cert_manager]
-# }
 
 resource "kubectl_manifest" "cloudflare_token_secret" {
     yaml_body = <<YAML
@@ -165,7 +132,6 @@ resource "kubernetes_manifest" "letsencrypt" {
     }
   }
 }
-
 
 resource "helm_release" "dapr" {
   name             = local.daprSettings.name
@@ -271,6 +237,123 @@ resource "helm_release" "argocd" {
   values = [ 
     file("${path.module}/values/argocd/values.yaml") 
     ]
+}
 
-#   depends_on = [null_resource.wait_for_ingress_nginx]
+resource "kubectl_manifest" "azure-secret-sp-secret" {
+    yaml_body = <<YAML
+apiVersion: v1
+kind: Secret
+metadata:
+  name: azure-secret-sp-secret
+type: Opaque
+stringData:
+  clientId: ${var.azureServicePrincipalClientId}
+  clientSecret: ${var.azureServicePrincipalClientSecret}
+YAML
+}
+
+resource "kubernetes_manifest" "azure-kv-cluster-store" {
+  depends_on = [kubectl_manifest.azure-secret-sp-secret]
+
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ClusterSecretStore"
+    metadata = {
+      name = "azure-kv-cluster-store"
+    }
+    spec = {
+      provider = {
+        azurekv = {
+          tenantId = var.azureServicePrincipalTenantId
+          vaultUrl = var.azureKeyVaultUrl
+          authSecretRef = {
+            # points to the secret that contains
+            # the azure service principal credentials
+            clientId = {
+              name = "azure-secret-sp-secret"
+              key = "clientId"
+            }
+            clientSecret = {
+              name = "azure-secret-sp-secret"
+              key = "clientSecret"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# resource "kubectl_manifest" "postgres-cluster-superuser" {
+#     yaml_body = <<YAML
+# apiVersion: external-secrets.io/v1beta1
+# kind: ClusterExternalSecret
+# metadata:
+#   name: postgres-cluster-superuser
+# spec:
+#   externalSecretName: postgres-superuser-external-secret
+#   refreshTime: "1h"
+
+#   externalSecretSpec:
+#     secretStoreRef:
+#       name: azure-kv-cluster-store
+#       kind: ClusterSecretStore
+
+#     refreshInterval: "36h"
+#     target:
+#       name: "postgres-superuser-secret"
+#       template:
+#         type: kubernetes.io/basic-auth
+
+#     data:
+#       - secretKey: username
+#         remoteRef:
+#           key: postgres-super-user
+#       - secretKey: password
+#         remoteRef:
+#           key: postgres-super-user-password
+# YAML
+# depends_on = [kubernetes_manifest.synology-csi-namespace]
+# }
+
+resource "kubernetes_manifest" "postgres_cluster_superuser" {
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ClusterExternalSecret"
+    metadata = {
+      name = "postgres-cluster-superuser"
+    }
+    spec = {
+      externalSecretName = "postgres-superuser-external-secret"
+      refreshTime        = "1h"
+
+      externalSecretSpec = {
+        secretStoreRef = {
+          name = "azure-kv-cluster-store"
+          kind = "ClusterSecretStore"
+        }
+        refreshInterval = "36h"
+        target = {
+          name     = "postgres-superuser-secret"
+          template = {
+            type = "kubernetes.io/basic-auth"
+          }
+        }
+        data = [
+          {
+            secretKey = "username"
+            remoteRef = {
+              key = "postgres-super-user"
+            }
+          },
+          {
+            secretKey = "password"
+            remoteRef = {
+              key = "postgres-super-user-password"
+            }
+          }
+        ]
+      }
+    }
+  }
 }
