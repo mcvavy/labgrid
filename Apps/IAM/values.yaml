@@ -95,7 +95,7 @@ keycloakCertificate:
     - "iam.labgrid.net"
 
 
-postgresCluster:
+pgcluster:
   enabled: true
 
   name: "labgrid-iam"
