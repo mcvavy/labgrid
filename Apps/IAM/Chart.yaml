@@ -10,7 +10,7 @@ dependencies:
     version: 24.4.9
     repository: oci://registry-1.docker.io/bitnamicharts
   - name: cluster
-    alias: postgresCluster
+    alias: pgcluster
     enabled: true
     version: 0.2.1
     repository: https://cloudnative-pg.github.io/charts
