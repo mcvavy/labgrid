@@ -33,7 +33,7 @@ keycloak:
       command:
         - sh
         - -c
-        - 'until pg_isready -h $PG_DATABASE_RW_SERVICE_HOST -p 5432; do echo Waiting for the database to be ready...; sleep 5; done;'
+        - 'until pg_isready -h $LABGRID_IAM_RW_SERVICE_HOST -p 5432; do echo Waiting for the database to be ready...; sleep 5; done;'
 
   # Recommended resource requests and limits for production
   resources:
