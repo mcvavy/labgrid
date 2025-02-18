@@ -113,7 +113,7 @@ pgcluster:
   name: "labgrid-iam"
   description: "Postgres Database Clsutering for Labgrid IAM"
   imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
-  instances: 3
+  instances: 1
   startDelay: 300
   stopDelay: 300
   primaryUpdateStrategy: "unsupervised"
