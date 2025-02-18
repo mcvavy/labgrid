@@ -42,7 +42,7 @@ keycloak:
     failureThreshold: 3
     successThreshold: 1
   
-  proxy: edge
+  # proxy: edge
   
   # initContainers:
   #   - name: wait-for-postgres-cluster
