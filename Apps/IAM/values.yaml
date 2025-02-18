@@ -27,17 +27,17 @@ keycloak:
   
   proxy: edge
   
-  initContainers:
-    - name: wait-for-postgres-cluster
-      image: postgres:latest
-      command:
-        - sh
-        - -c
-        - |
-          until pg_isready -h "$LABGRID_IAM_RW_SERVICE_HOST" -p 5432; do 
-            echo Waiting for the database to be ready...; 
-            sleep 5; 
-          done;
+  # initContainers:
+  #   - name: wait-for-postgres-cluster
+  #     image: postgres:latest
+  #     command:
+  #       - sh
+  #       - -c
+  #       - |
+  #         until pg_isready -h "$LABGRID_IAM_RW_SERVICE_HOST" -p 5432; do 
+  #           echo Waiting for the database to be ready...; 
+  #           sleep 5; 
+  #         done;
 
   # Recommended resource requests and limits for production
   resources:
