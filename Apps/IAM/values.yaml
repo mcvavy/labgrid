@@ -15,10 +15,10 @@ keycloak:
   # Scale up for HA (ensure your external DB can handle multiple connections)
   replicaCount: 2
 
-  image:
-    registry: docker.io
-    repository: bitnami/keycloak
-    tag: "26.1.2-debian-12-r0"  # update to a stable production version as needed
+  # image:
+  #   registry: docker.io
+  #   repository: bitnami/keycloak
+  #   tag: "26.1.2-debian-12-r0"  # update to a stable production version as needed
   
   # Enable TLS
   tls:
