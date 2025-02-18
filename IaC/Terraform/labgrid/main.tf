@@ -202,6 +202,26 @@ resource "helm_release" "synology-csi-chart" {
   depends_on = [kubectl_manifest.client-info-secret]
 }
 
+resource "kubernetes_storage_class_v1" "synology-iscsi-delete" {
+  metadata {
+    name = "synology-iscsi-delete"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+  storage_provisioner = "csi.san.synology.com"
+  reclaim_policy      = "Delete"
+  allow_volume_expansion = true
+  parameters = {
+    dsm = var.synologyClientIp
+    fsType: "btrfs"
+    location = "/volume1"
+    protocol = "iscsi"
+    formatOptions = "--nodiscard"
+  }
+  # mount_options = ["file_mode=0700", "dir_mode=0777", "mfsymlinks", "uid=1000", "gid=1000", "nobrl", "cache=none"]
+}
+
 resource "helm_release" "external-secrets-operator" {
   name             = local.externalSecretsSettings.name
   namespace        = local.externalSecretsSettings.namespace
