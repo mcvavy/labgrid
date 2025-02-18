@@ -13,7 +13,7 @@ keycloak:
   ## Production values.yaml for Bitnami’s Keycloak chart
 
   # Scale up for HA (ensure your external DB can handle multiple connections)
-  replicaCount: 2
+  replicaCount: 1
 
   # image:
   #   registry: docker.io
