@@ -1,5 +1,5 @@
-fullnameOverride: "labgrid-iam"
-nameOverride: ""
+# fullnameOverride: "labgrid-iam"
+# nameOverride: ""
 namespaceOverride: "labgrid-identity-system"
 
 
