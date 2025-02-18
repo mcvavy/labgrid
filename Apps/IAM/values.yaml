@@ -53,9 +53,9 @@ keycloak:
     enabled: true
 
   # Service configuration (you may want to adjust the type if you need a LoadBalancer)
-  service:
-    type: ClusterIP
-    port: 8080
+  # service:
+  #   type: ClusterIP
+  #   port: 8080
 
   # Ingress configuration
   ingress:
