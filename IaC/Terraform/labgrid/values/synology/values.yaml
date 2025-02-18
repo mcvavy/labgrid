@@ -4,7 +4,7 @@ clientInfoSecret:
 storageClasses:
   iscsi-delete:
     ## Optional: `true` or `false` (default):
-    #disabled: false
+    disabled: true
     ## Optional: `true` or `false` (default):
     #isDefault: false
     ## If not present, some location will be chosen to create volumes with the filesystem type ext4.
@@ -23,6 +23,7 @@ storageClasses:
     #volumeBindingMode: Immediate
   iscsi-retain:
     reclaimPolicy: Retain
+    disabled: true
   nfs-delete:
     disabled: true
     test: false

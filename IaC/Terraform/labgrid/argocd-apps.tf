@@ -28,7 +28,7 @@ resource "argocd_application" "labgrid-iam" {
     source {
       repo_url        = "https://github.com/mcvavy/labgrid.git"
       path            = "Apps/IAM"
-      target_revision = "main"
+      target_revision = "feature/labgrid-iam-solution"
 
       helm {
         release_name = "labgrid-iam"
