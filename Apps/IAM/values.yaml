@@ -9,6 +9,8 @@ localSettings:
 
 
 keycloak:
+  global:
+    defaultStorageClass: "synology-iscsi-delete"
   fullnameOverride: "keycloak"
   ## Production values.yaml for Bitnami’s Keycloak chart
 
@@ -16,10 +18,17 @@ keycloak:
   replicaCount: 1
 
   image:
-    registry: docker.io
-    repository: bitnami/keycloak
-    tag: "26.1.2-debian-12-r0"  # update to a stable production version as needed
     debug: true
+
+  extraEnvVars:
+    - name: KEYCLOAK_LOG_LEVEL
+      value: DEBUG
+
+  production: true
+
+  auth:
+    adminUser: user
+    adminPassword: "password01"
   
   # Enable TLS
   tls:
@@ -28,20 +37,11 @@ keycloak:
     existingSecret: *keycloak-certificate # Secret created by cert-manager
 
   livenessProbe:
-    # enabled: false
-    initialDelaySeconds: 300
-    periodSeconds: 1
-    timeoutSeconds: 5
-    failureThreshold: 3
-    successThreshold: 1
+    initialDelaySeconds: 120
+
 
   readinessProbe:
-    # enabled: false
-    initialDelaySeconds: 300
-    periodSeconds: 10
-    timeoutSeconds: 1
-    failureThreshold: 3
-    successThreshold: 1
+    initialDelaySeconds: 120
   
   # proxy: edge
   
