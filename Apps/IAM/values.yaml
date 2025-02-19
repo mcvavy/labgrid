@@ -37,13 +37,13 @@ keycloak:
     existingSecret: *keycloak-certificate # Secret created by cert-manager
 
   livenessProbe:
-    initialDelaySeconds: 150
+    initialDelaySeconds: 90
 
 
   readinessProbe:
-    initialDelaySeconds: 150
+    initialDelaySeconds: 90
   
-  # proxy: edge
+  proxy: edge
   
   # initContainers:
   #   - name: wait-for-postgres-cluster
