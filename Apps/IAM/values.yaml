@@ -45,17 +45,17 @@ keycloak:
   
   proxy: edge
   
-  # initContainers:
-  #   - name: wait-for-postgres-cluster
-  #     image: postgres:latest
-  #     command:
-  #       - sh
-  #       - -c
-  #       - |
-  #         until pg_isready -h "$LABGRID_IAM_RW_SERVICE_HOST" -p 5432; do 
-  #           echo Waiting for the database to be ready...; 
-  #           sleep 5; 
-  #         done;
+  initContainers:
+    - name: wait-for-postgres-cluster
+      image: postgres:latest
+      command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h "$PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+            echo Waiting for the database to be ready...; 
+            sleep 5; 
+          done;
 
   # Recommended resource requests and limits for production
   resources:
@@ -77,8 +77,8 @@ keycloak:
     path: "/"
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt"
-      # nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-      # nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     tls: true
     extraHosts:
       - name: "iam.labgrid.net"
