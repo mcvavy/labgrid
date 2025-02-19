@@ -1,3 +1,8 @@
+provider "argocd" {
+  server_addr = var.argocdServerAddress
+  auth_token  = var.argocdAuthToken
+}
+
 # Public Git repository
 resource "argocd_repository" "labgrid-git" {
   repo = "https://github.com/mcvavy/labgrid.git"
@@ -28,7 +33,7 @@ resource "argocd_application" "labgrid-iam" {
     source {
       repo_url        = "https://github.com/mcvavy/labgrid.git"
       path            = "Apps/IAM"
-      target_revision = "main"
+      target_revision = "feature/labgrid-iam-solution"
 
       helm {
         release_name = "labgrid-iam"
