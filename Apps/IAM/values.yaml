@@ -37,11 +37,11 @@ keycloak:
     existingSecret: *keycloak-certificate # Secret created by cert-manager
 
   livenessProbe:
-    initialDelaySeconds: 120
+    initialDelaySeconds: 300
 
 
   readinessProbe:
-    initialDelaySeconds: 120
+    initialDelaySeconds: 300
   
   # proxy: edge
   
