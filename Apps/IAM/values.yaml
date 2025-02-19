@@ -73,6 +73,7 @@ keycloak:
   ingress:
     enabled: true
     hostname: "iam.local.labgrid.net"
+    ingressClassName: "nginx"
     path: "/"
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt"
