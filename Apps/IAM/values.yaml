@@ -72,6 +72,7 @@ keycloak:
   # Ingress configuration
   ingress:
     enabled: true
+    hostnameStrict: true
     hostname: "iam.local.labgrid.net"
     ingressClassName: "nginx"
     path: "/"
