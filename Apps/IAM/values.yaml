@@ -24,7 +24,7 @@ keycloak:
     - name: KEYCLOAK_LOG_LEVEL
       value: DEBUG
 
-  # production: true
+  production: true
 
   auth:
     adminUser: user
