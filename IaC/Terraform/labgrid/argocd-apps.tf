@@ -1,3 +1,8 @@
+provider "argocd" {
+  server_addr = var.argocdServerAddress
+  auth_token  = var.argocdAuthToken
+}
+
 # Public Git repository
 resource "argocd_repository" "labgrid-git" {
   repo = "https://github.com/mcvavy/labgrid.git"

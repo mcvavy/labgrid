@@ -1,10 +1,4 @@
 locals {
-  ingressNginxSettings = {
-    name          = "ingress-nginx"
-    namespace     = "ingress-nginx"
-    chart_version = "4.12.0"
-    repository    = "https://kubernetes.github.io/ingress-nginx"
-  }
 
   metallbSettings = {
     name          = "metallb"
@@ -14,11 +8,19 @@ locals {
     apiVersion    = "metallb.io/v1beta1"
   }
 
-  traefikSettings = {
-    name          = "traefik"
-    namespace     = "traefik"
-    chart_version = "34.3.0"
- }
+  certManagerSettings = {
+    name          = "cert-manager"
+    namespace     = "cert-manager"
+    chart_version = "v1.17.0"
+    repository    = "https://charts.jetstack.io"
+  }
+
+  ingressNginxSettings = {
+    name          = "ingress-nginx"
+    namespace     = "ingress-nginx"
+    chart_version = "4.12.0"
+    repository    = "https://kubernetes.github.io/ingress-nginx"
+  }
 
   daprSettings = {
     name          = "dapr"
@@ -32,13 +34,6 @@ locals {
     namespace     = "argocd"
     chart_version = "7.8.2"
     repository    = "https://argoproj.github.io/argo-helm"
-  }
-
-  certManagerSettings = {
-    name          = "cert-manager"
-    namespace     = "cert-manager"
-    chart_version = "v1.17.0"
-    repository    = "https://charts.jetstack.io"
   }
 
   clusterIssuerSettings = {
@@ -61,18 +56,5 @@ locals {
     clientPort    = var.synologyClientPort
     serviceAccountUsername = var.synologyServiceAccountUsername
     serviceAccountPassword = var.synologyServiceAccountPassword
-  }
-
-  cloudNativePGSettings = {
-    name          = "cloudnative-pg"
-    namespace     = "cnpg-system"
-    chart_version = "0.23.0"
-    repository    = "https://cloudnative-pg.github.io/charts"
-  }
-
-  externalSecretsSettings = {
-    name          = "external-secrets"
-    namespace     = "external-secrets"
-    repository    = "https://charts.external-secrets.io"
   }
 }

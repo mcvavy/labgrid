@@ -73,7 +73,7 @@ keycloak:
   ingress:
     enabled: true
     hostnameStrict: true
-    # hostname: "iam.local.labgrid.net"
+    hostname: "iam.labgrid.net"
     ingressClassName: "nginx"
     path: "/"
     annotations:
@@ -82,8 +82,6 @@ keycloak:
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     tls: true
     extraHosts:
-      - name: "iam.labgrid.net"
-        path: "/"
       - name: "iam.local.labgrid.net"
         path: "/"
 

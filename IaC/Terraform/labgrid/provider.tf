@@ -63,8 +63,3 @@ provider "helm" {
 provider "kubectl" {
     config_path = "~/.kube/config" # Update with your kubeconfig path
 }
-
-provider "argocd" {
-  server_addr = var.argocdServerAddress
-  auth_token  = var.argocdAuthToken
-}
