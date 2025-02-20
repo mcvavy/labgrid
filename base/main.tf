@@ -154,17 +154,11 @@ resource "kubernetes_secret_v1" "client-info-secret" {
   }
 
   data = {
-    "client-info.yaml" = jsondecode({
-      clients = [
-        {
-          host = local.synologyCsiSettings.clientIp
-          port = local.synologyCsiSettings.clientPort
-          https = true
-          username = local.synologyCsiSettings.serviceAccountUsername
-          password = local.synologyCsiSettings.serviceAccountPassword
-        }
-      ]
-    })
+    host = local.synologyCsiSettings.clientIp
+    port = local.synologyCsiSettings.clientPort
+    https = true
+    username = local.synologyCsiSettings.serviceAccountUsername
+    password = local.synologyCsiSettings.serviceAccountPassword
   }
 
   type = "Opaque"
@@ -187,7 +181,7 @@ resource "helm_release" "synology-csi-chart" {
   wait = true
   timeout = 300
 
-  depends_on = [kubectl_manifest.client-info-secret]
+  depends_on = [kubernetes_secret_v1.client-info-secret]
 }
 
 resource "kubernetes_storage_class_v1" "synology-iscsi-delete" {

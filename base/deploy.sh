@@ -5,7 +5,7 @@ environment="${1:-stg}"
 
 set -e
 
-# rm -rf .terraform
+rm -rf .terraform
 terraform init -upgrade
 terraform validate
 terraform plan --var-file=variables-"$environment".tfvars
