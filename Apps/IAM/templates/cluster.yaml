@@ -36,8 +36,6 @@ spec:
   storage:
     storageClass: {{ .Values.pgcluster.storage.storageClass | quote }}
     size: {{ .Values.pgcluster.storage.size | quote }}
-  walStorage:
-    size: {{ .Values.pgcluster.walStorage.size | quote }}
 
   backup:
     barmanObjectStore:

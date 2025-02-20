@@ -9,6 +9,7 @@ configs:
     exec.enabled: true
     # https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/#create-new-user
     accounts.labgrid-user: "apiKey, login"
+    accounts.admin: "apiKey, login"
 
   rbac:
     create: true
