@@ -37,11 +37,11 @@ keycloak:
     existingSecret: *keycloak-certificate # Secret created by cert-manager
 
   livenessProbe:
-    initialDelaySeconds: 120
+    initialDelaySeconds: 150
 
 
   readinessProbe:
-    initialDelaySeconds: 120
+    initialDelaySeconds: 150
   
   proxy: edge
   
@@ -143,9 +143,7 @@ pgcluster:
 
   storage:
     storageClass: "synology-iscsi-delete"
-    size: "1Gi"
-  walStorage:
-    size: "1Gi"
+    size: "1Gi" 
 
 
   backup:

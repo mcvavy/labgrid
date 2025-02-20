@@ -233,10 +233,12 @@ resource "kubernetes_manifest" "azure-kv-cluster-store" {
             clientId = {
               name = "azure-secret-sp-secret"
               key = "clientId"
+              namespace = "default"
             }
             clientSecret = {
               name = "azure-secret-sp-secret"
               key = "clientSecret"
+              namespace = "default"
             }
           }
         }
