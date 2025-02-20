@@ -43,23 +43,23 @@ resource "helm_release" "ingress_nginx" {
   depends_on = [kubernetes_manifest.metallb_l2advertisement]
 }
 
-resource "kubectl_manifest" "cloudflare_token_secret" {
+resource "kubernetes_secret_v1" "cloudflare_token_secret" {
   depends_on = [ kubernetes_manifest.metallb_l2advertisement ]
 
-    yaml_body = <<YAML
-apiVersion: v1
-kind: Secret
-metadata:
-  name: cloudflare-token-secret
-  namespace: ${local.certManagerSettings.namespace}
-type: Opaque
-stringData:
-  cloudflare-token: ${var.cloudflareApiTokenKey}
-YAML
+  metadata {
+    name = "cloudflare-token-secret"
+    namespace = "${local.certManagerSettings.namespace}"
+  }
+
+  data = {
+    cloudflare-token: "${var.cloudflareApiTokenKey}"
+  }
+
+  type = "Opaque"
 }
 
 resource "kubernetes_manifest" "letsencrypt" {
-  depends_on = [kubectl_manifest.cloudflare_token_secret]
+  depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
 
   manifest = {
     apiVersion = local.clusterIssuerSettings.apiVersion
@@ -200,21 +200,21 @@ resource "helm_release" "argocd" {
     ]
 }
 
-resource "kubectl_manifest" "azure-secret-sp-secret" {
-    yaml_body = <<YAML
-apiVersion: v1
-kind: Secret
-metadata:
-  name: azure-secret-sp-secret
-type: Opaque
-stringData:
-  clientId: ${var.azureServicePrincipalClientId}
-  clientSecret: ${var.azureServicePrincipalClientSecret}
-YAML
+resource "kubernetes_secret_v1" "azure-secret-sp-secret" {
+  metadata {
+    name = "azure-secret-sp-secret"
+  }
+
+  data = {
+    clientId = "${var.azureServicePrincipalClientId}"
+    clientSecret = "${var.azureServicePrincipalClientSecret}"
+  }
+
+  type = "Opaque"
 }
 
 resource "kubernetes_manifest" "azure-kv-cluster-store" {
-  depends_on = [kubectl_manifest.azure-secret-sp-secret]
+  depends_on = [kubernetes_secret_v1.azure-secret-sp-secret]
 
   manifest = {
     apiVersion = "external-secrets.io/v1beta1"

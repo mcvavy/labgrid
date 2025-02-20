@@ -9,6 +9,7 @@ resource "argocd_repository" "labgrid-git" {
 }
 
 resource "kubernetes_manifest" "labgrid-iam-namespace" {
+  depends_on = [ argocd_repository.labgrid-git ]
   manifest = {
     apiVersion = "v1"
     kind       = "Namespace"
