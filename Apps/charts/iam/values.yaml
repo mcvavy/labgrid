@@ -1,7 +1,4 @@
-# fullnameOverride: "labgrid-iam"
-# nameOverride: ""
 namespaceOverride: "labgrid-identity-system"
-
 
 #Shared variables
 localSettings:
@@ -9,12 +6,20 @@ localSettings:
 
 
 keycloak:
+  adminPasswordSecret:
+    name: external-keycloak-admin-password
+    refreshInterval: "24h"
+    secretStoreRef:
+      name: azure-kv-cluster-store
+      kind: ClusterSecretStore
+    data:
+      - secretKey: keycloak-admin-password
+        remoteRef:
+          key: keycloak-admin-password
+
   global:
     defaultStorageClass: "synology-iscsi-delete"
-  fullnameOverride: "keycloak"
-  ## Production values.yaml for Bitnami’s Keycloak chart
 
-  # Scale up for HA (ensure your external DB can handle multiple connections)
   replicaCount: 1
 
   image:
@@ -22,13 +27,12 @@ keycloak:
 
   extraEnvVars:
     - name: KEYCLOAK_LOG_LEVEL
-      value: DEBUG
-
-  production: true
+      value: INFO
 
   auth:
-    adminUser: user
-    adminPassword: "password01"
+    adminUser: admin
+    existingSecret: "external-keycloak-admin-password"
+    passwordSecretKey: "keycloak-admin-password"
   
   # Enable TLS
   tls:
@@ -112,7 +116,7 @@ keycloakCertificate:
 
 pgcluster:
   enabled: true
-  fullnameOverride: "pgcluster"
+
   name: "labgrid-iam"
   description: "Postgres Database Clsutering for Labgrid IAM"
   imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
@@ -143,26 +147,7 @@ pgcluster:
 
   storage:
     storageClass: "synology-iscsi-delete"
-    size: "1Gi" 
-
-
-  backup:
-    barmanObjectStore:
-      destinationPath: "https://labgrid.blob.core.windows.net/labgrid-iam"
-      azureCredentials:
-        storageAccount:
-          name: "azure-credential"
-          key: "labgrid-storage-account-name"
-        storageSasToken:
-          name: "azure-credential"
-          key: "labgrid-blob-sas-token"
-      wal:
-        compression: "gzip"
-        encryption: "AES256"
-      data:
-        compression: "gzip"
-        encryption: "AES256"
-    retentionPolicy: "14d"
+    size: "1Gi"
 
   resources:
     requests:

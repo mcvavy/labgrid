@@ -1,0 +1,16 @@
+keycloak:
+  global:
+    defaultStorageClass: "local-path"
+  replicaCount: 1
+  image:
+    debug: true
+
+  extraEnvVars:
+    - name: KEYCLOAK_LOG_LEVEL
+      value: DEBUG
+
+pgcluster:
+  instances: 1
+  storage:
+    storageClass: "local-path"
+    size: "0.5Gi"

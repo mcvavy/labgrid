@@ -12,24 +12,9 @@ terraform {
         version = "~>4.0"
     }
 
-    kubernetes = {
-        source  = "hashicorp/kubernetes"
-        version = "2.33.0"
-    }
-
     helm = {
         source  = "hashicorp/helm"
         version = "2.16.1"
-    }
-
-    null = {
-        source  = "hashicorp/null"
-        version = "3.2.3"
-    }
-
-    kubectl = {
-      source = "gavinbunney/kubectl"
-      version = "1.19.0"
     }
   }
 
@@ -37,7 +22,7 @@ terraform {
     resource_group_name  = "labgrid"
     storage_account_name = "labgrid"
     container_name       = "labgridtfstate"
-    key                  = "labgrid.tfstate"
+    key                  = "labgrid.apps.tfstate"
   }
 }
 
@@ -50,16 +35,12 @@ provider "azurerm" {
   }
 }
 
-provider "kubernetes" {
-  config_path = "~/.kube/config" # Update with your kubeconfig path
-}
-
 provider "helm" {
   kubernetes {
     config_path = "~/.kube/config" # Update with your kubeconfig path
   }
 }
 
-provider "kubectl" {
-    config_path = "~/.kube/config" # Update with your kubeconfig path
+provider "argocd" {
+  core = true
 }
