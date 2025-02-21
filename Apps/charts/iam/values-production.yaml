@@ -20,6 +20,21 @@ keycloak:
             sleep 5; 
           done;
 
+  ingress:
+    enabled: true
+    hostnameStrict: true
+    hostname: "iam.labgrid.net"
+    ingressClassName: "nginx"
+    path: "/"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    tls: true
+    extraHosts:
+      - name: "iam.local.labgrid.net"
+        path: "/"
+
 
 pgcluster:
   instances: 2

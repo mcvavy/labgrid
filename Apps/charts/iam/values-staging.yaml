@@ -21,9 +21,19 @@ keycloak:
           done;
 
   ingress:
-    hostname: "iam.stg.labgrid.net"
+    enabled: true
+    hostnameStrict: true
+    hostname: "iam.stg.local.labgrid.net"
+    ingressClassName: "nginx"
+    path: "/"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    tls: true
     extraHosts:
-      - name: "iam.stg.local.labgrid.net"
+      - name: "iam.stg.labgrid.net"
+        path: "/" 
 
   extraEnvVars:
     - name: KEYCLOAK_LOG_LEVEL
