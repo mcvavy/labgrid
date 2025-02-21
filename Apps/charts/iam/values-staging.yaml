@@ -23,28 +23,21 @@ keycloak:
   ingress:
     enabled: true
     hostnameStrict: true
-    hostname: "iam.stg.local.labgrid.net"
+    hostname: "iam-stg-local.labgrid.net"
     ingressClassName: "nginx"
     path: "/"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt"
+      cert-manager.io/cluster-issuer: "letsencrypt-staging"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     tls: true
     extraHosts:
-      - name: "iam.stg.labgrid.net"
+      - name: "iam-stg.labgrid.net"
         path: "/" 
 
   extraEnvVars:
     - name: KEYCLOAK_LOG_LEVEL
       value: DEBUG
-
-# Maybe removed as it not being used
-keycloakCertificate:
-  commonName: "iam.stg.local.labgrid.net"
-  dnsNames:
-    - "iam.stg.labgrid.net"
-    - "iam.stg.local.labgrid.net"
 
 pgcluster:
   instances: 1

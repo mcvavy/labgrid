@@ -27,12 +27,12 @@ keycloak:
     ingressClassName: "nginx"
     path: "/"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt"
+      cert-manager.io/cluster-issuer: "letsencrypt-production"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     tls: true
     extraHosts:
-      - name: "iam.local.labgrid.net"
+      - name: "iam-local.labgrid.net"
         path: "/"
 
 

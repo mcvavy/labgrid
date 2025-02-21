@@ -37,8 +37,10 @@ locals {
   }
 
   clusterIssuerSettings = {
-    name          = "letsencrypt"
-    server        = var.environment == "prod" ? "https://acme-v02.api.letsencrypt.org/directory" : "https://acme-staging-v02.api.letsencrypt.org/directory"
+    nameStaging          = "letsencrypt-staging"
+    nameProduction       = "letsencrypt-production"
+    stagingServer        = "https://acme-staging-v02.api.letsencrypt.org/directory"
+    productionServer     = "https://acme-v02.api.letsencrypt.org/directory"
     namespace     = "cert-manager"
     apiVersion    = "cert-manager.io/v1"
     kind          = "ClusterIssuer"

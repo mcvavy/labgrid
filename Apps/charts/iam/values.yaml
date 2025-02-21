@@ -81,7 +81,7 @@ keycloak:
     ingressClassName: "nginx"
     path: "/"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt"
+      cert-manager.io/cluster-issuer: "letsencrypt-staging"
       nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     tls: true
@@ -99,19 +99,6 @@ keycloak:
     existingSecretUserKey: "username" # Key in the secret containing the database user
     existingSecretDatabaseKey: "dbname" # Key in the secret containing the database name
     existingSecretPasswordKey: "password" # Key in the secret containing the database password
-
-# Maybe removed as it not being used
-keycloakCertificate:
-  enabled: true
-  name: "keycloak-certificate"
-  secretName: *keycloak-certificate
-  issuerRef:
-    name: "letsencrypt"
-    kind: "ClusterIssuer"
-  commonName: "iam.local.labgrid.net"
-  dnsNames:
-    - "iam.labgrid.net"
-    - "iam.local.labgrid.net"
 
 
 pgcluster:

@@ -29,7 +29,7 @@ server:
     issuer:
       group: "cert-manager.io"
       kind: "ClusterIssuer"
-      name: "letsencrypt"
+      name: "letsencrypt-production"
 
   ingress:
     enabled: true

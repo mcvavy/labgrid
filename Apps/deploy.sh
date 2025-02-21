@@ -1,8 +1,5 @@
 #!/bin/sh
 
-
-# environment="${1:-stg}"
-
 set -e
 
 rm -rf .terraform
