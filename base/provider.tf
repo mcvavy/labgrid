@@ -37,7 +37,7 @@ terraform {
     resource_group_name  = "labgrid"
     storage_account_name = "labgrid"
     container_name       = "labgridtfstate"
-    key                  = "labgrid.tfstate"
+    key                  = "labgrid.base.tfstate"
   }
 }
 

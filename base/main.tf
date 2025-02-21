@@ -148,6 +148,25 @@ YAML
 depends_on = [kubernetes_manifest.synology-csi-namespace]
 }
 
+# resource "kubernetes_secret_v1" "client-info-secret" {
+#   metadata {
+#     name = "client-info-secret"
+#   }
+
+#   data = {
+#     host = local.synologyCsiSettings.clientIp
+#     port = local.synologyCsiSettings.clientPort
+#     https = true
+#     username = local.synologyCsiSettings.serviceAccountUsername
+#     password = local.synologyCsiSettings.serviceAccountPassword
+#   }
+
+#   type = "Opaque"
+
+#   depends_on = [kubernetes_manifest.synology-csi-namespace]
+# }
+
+
 resource "helm_release" "synology-csi-chart" {
   name             = local.synologyCsiSettings.name
   repository       = local.synologyCsiSettings.repository
@@ -182,7 +201,6 @@ resource "kubernetes_storage_class_v1" "synology-iscsi-delete" {
     protocol = "iscsi"
     formatOptions = "--nodiscard"
   }
-  # mount_options = ["file_mode=0700", "dir_mode=0777", "mfsymlinks", "uid=1000", "gid=1000", "nobrl", "cache=none"]
 }
 
 resource "helm_release" "argocd" {
