@@ -6,7 +6,7 @@ keycloak:
     debug: false
   production: true
   externalDatabase:
-    existingSecret: "iam-production-pgcluster-app"
+    existingSecret: "iam-pgcluster-app"
 
   initContainers:
     - name: wait-for-postgres-cluster
@@ -14,7 +14,7 @@ keycloak:
         - sh
         - -c
         - |
-          until pg_isready -h "$IAM-PRODUCTION-PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+          until pg_isready -h "$IAM-PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
             echo Waiting for the database to be ready...; 
             sleep 5; 
           done;

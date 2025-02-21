@@ -1,0 +1,42 @@
+keycloak:
+  global:
+    defaultStorageClass: "local-path"
+  replicaCount: 1
+  image:
+    debug: true
+
+  externalDatabase:
+    existingSecret: "iam-stg-pgcluster-app"
+
+  initContainers:
+    - name: wait-for-postgres-cluster
+      command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h "$IAM-STG-PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+            echo Waiting for the database to be ready...; 
+            sleep 5; 
+          done;
+
+  ingress:
+    hostname: "iam.stg.labgrid.net"
+    extraHosts:
+      - name: "iam.stg.local.labgrid.net"
+
+  extraEnvVars:
+    - name: KEYCLOAK_LOG_LEVEL
+      value: DEBUG
+
+# Maybe removed as it not being used
+keycloakCertificate:
+  commonName: "iam.stg.local.labgrid.net"
+  dnsNames:
+    - "iam.stg.labgrid.net"
+    - "iam.stg.local.labgrid.net"
+
+pgcluster:
+  instances: 1
+  storage:
+    storageClass: "local-path"
+    size: "0.5Gi"

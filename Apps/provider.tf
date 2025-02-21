@@ -40,7 +40,3 @@ provider "helm" {
     config_path = "~/.kube/config" # Update with your kubeconfig path
   }
 }
-
-provider "argocd" {
-  core = true
-}
