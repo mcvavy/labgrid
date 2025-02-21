@@ -141,6 +141,25 @@ pgcluster:
       secret:
         name: "iam-postgres-app-user"
 
+  backup:
+    enabled: true
+    barmanObjectStore:
+      destinationPath: "https://labgrid.blob.core.windows.net/labgrid-iam"
+      azureCredentials:
+        storageAccount:
+          name: "azure-credential"
+          key: "labgrid-storage-account-name"
+        storageSasToken:
+          name: "azure-credential"
+          key: "labgrid-blob-sas-token"
+      wal:
+        compression: "gzip"
+        encryption: "AES256"
+      data:
+        compression: "gzip"
+        encryption: "AES256"
+    retentionPolicy: "14d"
+
   enableSuperuserAccess: true
   superuserSecret:
     name: "postgres-superuser-external-secret"

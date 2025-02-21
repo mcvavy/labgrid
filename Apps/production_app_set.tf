@@ -7,7 +7,7 @@ resource "argocd_application_set" "production" {
     generator {
       git {
         repo_url = "https://github.com/mcvavy/labgrid.git"
-        revision = "release"
+        revision = "main"
 
         directory {
           path = "Apps/charts/*"
@@ -24,7 +24,7 @@ resource "argocd_application_set" "production" {
         project = "default"
         source {
           repo_url        = "https://github.com/mcvavy/labgrid.git"
-          target_revision = "release"
+          target_revision = "main"
           path            = "{{path}}"
 
           helm {

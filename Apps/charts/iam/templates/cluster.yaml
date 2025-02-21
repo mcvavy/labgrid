@@ -37,6 +37,7 @@ spec:
     storageClass: {{ .Values.pgcluster.storage.storageClass | quote }}
     size: {{ .Values.pgcluster.storage.size | quote }}
 
+  {{- if .Values.pgcluster.backup.enabled }}
   backup:
     barmanObjectStore:
       destinationPath: {{ .Values.pgcluster.backup.barmanObjectStore.destinationPath | quote }}
@@ -54,6 +55,7 @@ spec:
         compression: {{ .Values.pgcluster.backup.barmanObjectStore.data.compression | quote }}
         encryption: {{ .Values.pgcluster.backup.barmanObjectStore.data.encryption | quote }}
     retentionPolicy: {{ .Values.pgcluster.backup.retentionPolicy | quote }}
+  {{- end }}
 
   resources:
     requests:
