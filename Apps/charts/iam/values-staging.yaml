@@ -10,6 +10,7 @@ keycloak:
 
   initContainers:
     - name: wait-for-postgres-cluster
+      image: postgres:latest
       command:
         - sh
         - -c
