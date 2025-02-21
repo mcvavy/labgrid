@@ -40,3 +40,6 @@ pgcluster:
   storage:
     storageClass: "local-path"
     size: "0.5Gi"
+
+  backup:
+    enabled: false
