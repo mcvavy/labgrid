@@ -197,7 +197,7 @@ trilium:
 
   configini:
     general:
-      instanceName: main
+      instanceName: ""
       # Disable authentication to Trilium? (if you're running it on a private network, or have authentication handled by another component)
       noAuthentication: false
       # Disable backups of the database?

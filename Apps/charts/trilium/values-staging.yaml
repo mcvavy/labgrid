@@ -197,7 +197,7 @@ trilium:
 
   configini:
     general:
-      instanceName: main
+      instanceName: ""
       # Disable authentication to Trilium? (if you're running it on a private network, or have authentication handled by another component)
       noAuthentication: false
       # Disable backups of the database?
@@ -230,7 +230,7 @@ trilium:
       accessMode: ReadWriteOnce
 
       # -- The amount of storage that is requested for the persistent volume.
-      size: 2Gi
+      size: 5Gi
 
       # -- Set to true to retain the PVC upon `helm uninstall`
       retain: false
