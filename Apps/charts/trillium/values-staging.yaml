@@ -174,12 +174,6 @@ trilium:
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
         nginx.ingress.kubernetes.io/proxy-body-size: "0"
 
-      labels: {}
-
-      className:
-
-      defaultBackend:
-
       ## Configure the hosts for the ingress
       hosts:
         - # -- Host address. Helm template can be passed.
