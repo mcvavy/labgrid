@@ -136,20 +136,20 @@ trilium:
   # [[ref]](https://bjw-s.github.io/helm-charts/docs/common-library/common-library-storage)
   # @default -- See below
 
-  configini:
-    General:
-      instanceName: "trilium"
-      # Disable authentication to Trilium? (if you're running it on a private network, or have authentication handled by another component)
-      noAuthentication: false
-      # Disable backups of the database?
-      noBackup: false
-    network:
-      host: "0.0.0.0"
-      port: 8080
-      https: false
-      certPath: ""
-      keyPath: ""
-      trustedReverseProxy: true
+  # configini:
+  #   General:
+  #     instanceName: "trilium"
+  #     # Disable authentication to Trilium? (if you're running it on a private network, or have authentication handled by another component)
+  #     noAuthentication: false
+  #     # Disable backups of the database?
+  #     noBackup: false
+  #   network:
+  #     host: "0.0.0.0"
+  #     port: 8080
+  #     https: false
+  #     certPath: ""
+  #     keyPath: ""
+  #     trustedReverseProxy: true
 
   persistence:
     data:
