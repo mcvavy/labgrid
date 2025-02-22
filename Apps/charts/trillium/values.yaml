@@ -232,7 +232,7 @@ trilium:
       storageClass: "synology-iscsi-delete"
 
       # -- If you want to reuse an existing claim, the name of the existing PVC can be passed here.
-      existingClaim: trilium-data
+      # existingClaim: trilium-data
 
       # -- The optional data source for the persistentVolumeClaim.
       # [[ref]](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#volume-populators-and-data-sources)
