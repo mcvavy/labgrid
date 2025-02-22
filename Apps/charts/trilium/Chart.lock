@@ -1,6 +1,0 @@
-dependencies:
-- name: trilium
-  repository: https://triliumnext.github.io/helm-charts
-  version: 1.2.0
-digest: sha256:e418c1491c49bb44e915aa1ec2533090b72b9d7a275ed0fcbc234676e22f8083
-generated: "2025-02-22T03:54:08.195262943Z"
