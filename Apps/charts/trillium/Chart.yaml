@@ -1,0 +1,15 @@
+apiVersion: v2
+name: trillium
+description: An open source note taking application. A hierarchical note taking application with focus on building large personal knowledge bases.
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+dependencies:
+  - name: trilium
+    enabled: true
+    version: 1.2.0
+    repository: https://triliumnext.github.io/helm-charts
+maintainers:
+  - name: LabGrid Labs
+    email: admin@labgrid.net
+    url: blog.labgrid.net
