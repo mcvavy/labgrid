@@ -1,6 +1,6 @@
 trilium:
   controllers:
-    main:
+    trilium:
       # -- enable the controller.
       enabled: true
 
@@ -33,9 +33,7 @@ trilium:
       pod: {}
 
       containers:
-        main:
-          # -- Override the container name
-          nameOverride:
+        trilium:
 
           # -- Specify if this container depends on any other containers
           # This is used to determine the order in which the containers are rendered.
@@ -112,7 +110,7 @@ trilium:
   # Additional services can be added by adding a dictionary key similar to the 'main' service.
   # @default -- See below
   service:
-    main:
+    trilium:
       # -- Enables or disables the service
       enabled: true
 
@@ -120,7 +118,7 @@ trilium:
       nameOverride: ""
 
       # -- Configure which controller this service should target
-      controller: main
+      controller: trilium
 
       # -- Make this the primary service for this controller (used in probes, notes, etc...).
       # If there is more than 1 service targeting the controller, make sure that only 1 service is
@@ -157,7 +155,7 @@ trilium:
 
   # -- Configure the ingresses for the chart here.
   ingress:
-    main:
+    trilium:
       enabled: true
       nameOverride:
       annotations:
@@ -178,9 +176,9 @@ trilium:
               service:
                 # -- Overrides the service name reference for this path
                 # The service name to reference.
-                name: main
+                name: trilium
                 # -- Reference a service identifier from this values.yaml
-                identifier: main
+                identifier: trilium
                 # -- The port number or name on the service to direct traffic to.
                 port: http
 
