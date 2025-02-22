@@ -9,17 +9,17 @@ dependencies:
     enabled: true
     version: 1.2.0
     repository: https://triliumnext.github.io/helm-charts
-    # import-values:
-    # - child: controllers
-    #   parent: trilium.controllers
-    # - child: persistence
-    #   parent: trilium.persistence
-    # - child: configini
-    #   parent: trilium.configini
-    # - child: ingress
-    #   parent: trilium.ingress
-    # - child: service
-    #   parent: trilium.service
+    import-values:
+    - child: controllers
+      parent: trilium.controllers
+    - child: persistence
+      parent: trilium.persistence
+    - child: configini
+      parent: trilium.configini
+    - child: ingress
+      parent: trilium.ingress
+    - child: service
+      parent: trilium.service
 maintainers:
   - name: LabGrid Labs
     email: admin@labgrid.net
