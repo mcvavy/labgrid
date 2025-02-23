@@ -9,11 +9,11 @@ jobs:
     kubernetes:
         runs-on: ubuntu-latest
         steps:
-        - uses: tale/kubectl-action@v1
+        - uses: actions-hub/kubectl@master
+          env:
+            KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
           with:
-            base64-kube-config: ${{ secrets.KUBE_CONFIG }}
-        - name: List nodes on cluster
-          run: kubectl get nodes
+            args: get nodes
               
 
 
