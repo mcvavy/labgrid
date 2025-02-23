@@ -7,13 +7,13 @@ on:
             - feature/*
 jobs:
     kubernetes:
-        run-on: ubuntu-latest
+        runs-on: ubuntu-latest
         steps:
-            - name: List kubernetes nodes
-              uses: tale/kubectl-action@v1
-                with:
-                  base64-kube-config: ${{ secrets.KUBE_CONFIG }}
-              run: kubectl get nodes
+        - uses: tale/kubectl-action@v1
+          with:
+            base64-kube-config: ${{ secrets.KUBE_CONFIG }}
+        - name: List nodes on cluster
+          run: kubectl get nodes
               
 
 
