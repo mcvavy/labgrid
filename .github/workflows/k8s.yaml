@@ -5,15 +5,30 @@ on:
     push: 
         branches: 
             - feature/*
+
 jobs:
-    kubernetes:
-        runs-on: ubuntu-latest
-        steps:
-        - uses: actions-hub/kubectl@master
-          env:
-            KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-          with:
-            args: get nodes
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout your repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up kubeconfig from the GitHub Secret
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      # Verify kubectl is installed and check version
+      - name: Check kubectl version
+        run: kubectl version --client
+
+      # Run your Kubernetes command, e.g., list pods
+      - name: List pods in the cluster
+        run: kubectl get pods
+
               
 
 
