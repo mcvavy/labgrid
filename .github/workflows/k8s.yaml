@@ -38,7 +38,7 @@ jobs:
         run: kubectl version --client
 
       - name: List pods in the cluster
-        run: kubectl get pods
+        run: kubectl get nodes
 
               
 
