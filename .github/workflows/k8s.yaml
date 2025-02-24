@@ -23,13 +23,13 @@ jobs:
             -d "client_id=github-actions" \
             -d "client_secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}" \
             -d "grant_type=client_credentials" | jq -r '.access_token')
-            echo $TOKEN 
+            echo "generated token is: $TOKEN"
             echo "OIDC_TOKEN=$TOKEN" >> $GITHUB_ENV
         
       - name: Authenticate to Kubernetes
         run: |
             kubectl config set-credentials github-action-user --token=$OIDC_TOKEN
-            kubectl config set-cluster my-cluster --server=https://<kubernetes-api-server-url>
+            kubectl config set-cluster my-cluster --server=https://k8s-server.labgrid.net
             kubectl config set-context my-context --cluster=my-cluster --user=github-action-user
             kubectl config use-context my-context
 
