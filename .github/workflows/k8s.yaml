@@ -28,7 +28,7 @@ jobs:
         
       - name: Authenticate to Kubernetes
         run: |
-            kubectl config set-credentials github-action-user --token=$OIDC_TOKEN
+            kubectl config set-credentials github-actions --token=$OIDC_TOKEN
             kubectl config set-cluster labgrid --server=https://k8s-server.labgrid.net
             kubectl config set-context labgrid --cluster=labgrid --user=github-actions
             kubectl config use-context labgrid
