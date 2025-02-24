@@ -29,9 +29,9 @@ jobs:
       - name: Authenticate to Kubernetes
         run: |
             kubectl config set-credentials github-action-user --token=$OIDC_TOKEN
-            kubectl config set-cluster my-cluster --server=https://k8s-server.labgrid.net
-            kubectl config set-context my-context --cluster=labgrid --user=github-actions
-            kubectl config use-context my-context
+            kubectl config set-cluster labgrid --server=https://k8s-server.labgrid.net
+            kubectl config set-context labgrid --cluster=labgrid --user=github-actions
+            kubectl config use-context labgrid
 
       # Verify kubectl is installed and check version
       - name: Check kubectl version
