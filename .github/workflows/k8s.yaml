@@ -39,7 +39,3 @@ jobs:
 
       - name: List pods in the cluster
         run: kubectl get nodes
-
-              
-
-
