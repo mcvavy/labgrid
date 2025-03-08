@@ -104,7 +104,7 @@ keycloak:
 pgcluster:
   enabled: true
 
-  name: "labgrid-iam"
+  name: "pgcluster"
   description: "Postgres Database Clsutering for Labgrid IAM"
   imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
   instances: 1
