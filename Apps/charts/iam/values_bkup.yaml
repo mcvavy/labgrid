@@ -103,97 +103,90 @@ keycloak:
 
 pgcluster:
   enabled: true
-  type: postgresql
 
-  version:
-    # -- PostgreSQL major version to use
-    postgresql: "17"
+  name: "labgrid-iam"
+  description: "Postgres Database Clsutering for Labgrid IAM"
+  imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
+  instances: 1
+  startDelay: 300
+  stopDelay: 300
+  primaryUpdateStrategy: "unsupervised"
 
-  mode: standalone
+  postgresql:
+    parameters:
+      shared_buffers: "256MB"
+      pg_stat_statements:
+        max: "10000"
+        track: "all"
+      auto_explain:
+        log_min_duration: "10s"
 
-  cluster:
-    instances: 2
-    imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
-    imagePullPolicy: IfNotPresent
-
-    storage:
-      size: 8Gi
-      storageClass: "synology-iscsi-delete"
-
-    resources:
-      requests:
-        memory: "512Mi"
-        cpu: "1"
-      limits:
-        memory: "1Gi"
-        cpu: "2"
-
-    priorityClassName: ""
-    primaryUpdateMethod: switchover
-    primaryUpdateStrategy: unsupervised
-    logLevel: "info"
-
-    affinity:
-      enablePodAntiAffinity: true
-      topologyKey: topology.kubernetes.io/zone
-
-    enableSuperuserAccess: true
-
-    enablePDB: true
-
+  bootstrap:
     initdb:
-      database: "appdb"
+      database: "labgrid-iam"
       owner: "labgridappuser"
+      secret:
+        name: "iam-postgres-app-user"
 
-
-  backups:
+  backup:
     enabled: true
-    # Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path>
-    destinationPath: "https://labgrid.blob.core.windows.net/labgrid-pg-backup"
-    # -- One of `s3`, `azure` or `google`
-    provider: azure
-    azure:
-      path: "/"
-      connectionString: ""
-      storageAccount: ""
-      storageKey: ""
-      storageSasToken: ""
-      containerName: ""
-      serviceName: blob
-      inheritFromAzureAD: false
-    secret:
-      create: false
-      name: "azure-credential"
-
-    wal:
-      # -- WAL compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
-      compression: gzip
-      # -- Whether to instruct the storage provider to encrypt WAL files. One of `` (use the storage container default), `AES256` or `aws:kms`.
-      encryption: AES256
-      # -- Number of WAL files to be archived or restored in parallel.
-      maxParallel: 1
-    data:
-      # -- Data compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
-      compression: gzip
-      # -- Whether to instruct the storage provider to encrypt data files. One of `` (use the storage container default), `AES256` or `aws:kms`.
-      encryption: AES256
-      # -- Number of data files to be archived or restored in parallel.
-      jobs: 2
-
-    scheduledBackups:
-      -
-        # -- Scheduled backup name
-        name: scheduled-backup
-        # -- Schedule in cron format
-        schedule: "0 0 0 * * *"
-        # schedule: "0 0 0 * * 1,4,7"
-        # -- Backup owner reference
-        backupOwnerReference: self
-        # -- Backup method, can be `barmanObjectStore` (default) or `volumeSnapshot`
-        method: barmanObjectStore
-
-    # -- Retention policy for backups
+    barmanObjectStore:
+      destinationPath: "https://labgrid.blob.core.windows.net/labgrid-iam"
+      azureCredentials:
+        storageAccount:
+          name: "azure-credential"
+          key: "labgrid-storage-account-name"
+        storageSasToken:
+          name: "azure-credential"
+          key: "labgrid-blob-sas-token"
+      wal:
+        compression: "gzip"
+        encryption: "AES256"
+      data:
+        compression: "gzip"
+        encryption: "AES256"
     retentionPolicy: "14d"
+
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: "postgres-superuser-external-secret"
+
+  storage:
+    storageClass: "synology-iscsi-delete"
+    size: "1Gi"
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "1"
+    limits:
+      memory: "1Gi"
+      cpu: "2"
+
+  managed:
+    services:
+      disabledDefaultServices:
+        - "ro"
+        - "r"
+      additional:
+        - selectorType: "rw"
+          serviceTemplate:
+            metadata:
+              name: "labgrid-iam-db-svc"
+              labels:
+                labgrid-db-pool: "postgres-pool"
+              annotations:
+                external-dns.alpha.kubernetes.io/hostname: "labgrid-iam-db.labgrid.net"
+            spec:
+              type: "ClusterIP"
+
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: "failure-domain.beta.kubernetes.io/zone"
+
+  nodeMaintenanceWindow:
+    inProgress: false
+    reusePVC: false
 
   externalSecretBackupCredentials:
     name: azure-credential
@@ -202,18 +195,12 @@ pgcluster:
       name: azure-kv-cluster-store
       kind: ClusterSecretStore
     data:
-      - secretKey: AZURE_STORAGE_ACCOUNT
-        remoteRef:
-          key: labgrid-storage-account-name
       - secretKey: labgrid-storage-account-name
         remoteRef:
           key: labgrid-storage-account-name
       - secretKey: labgrid-blob-sas-token
         remoteRef:
           key: labgrid-blob-sas-token
-      - secretKey: AZURE_STORAGE_SAS_TOKEN
-        remoteRef:
-          key: postgres-backup-sas-token
 
   externalSecretPostgresAppUser:
     name: iam-postgres-app-user

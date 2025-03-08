@@ -58,21 +58,56 @@ resource "kubernetes_secret_v1" "cloudflare_token_secret" {
   type = "Opaque"
 }
 
-resource "kubernetes_manifest" "letsencrypt" {
+resource "kubernetes_manifest" "letsencrypt-staging" {
   depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
 
   manifest = {
     apiVersion = local.clusterIssuerSettings.apiVersion
     kind       = local.clusterIssuerSettings.kind
     metadata = {
-      name = local.clusterIssuerSettings.name
+      name = local.clusterIssuerSettings.nameStaging
     }
     spec = {
       acme = {
-        server  = local.clusterIssuerSettings.server
+        server  = local.clusterIssuerSettings.stagingServer
         email   = local.clusterIssuerSettings.email
         privateKeySecretRef = {
-          name = local.clusterIssuerSettings.name
+          name = local.clusterIssuerSettings.nameStaging
+        }
+        solvers = [{
+          dns01 = {
+            cloudflare = {
+              email = local.clusterIssuerSettings.email
+              apiTokenSecretRef = {
+                name = "cloudflare-token-secret"
+                key  = "cloudflare-token"
+              }
+            }
+          }
+          selector = {
+            dnsZones = [var.dnsZones]
+          }
+        }]
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "letsencrypt-production" {
+  depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
+
+  manifest = {
+    apiVersion = local.clusterIssuerSettings.apiVersion
+    kind       = local.clusterIssuerSettings.kind
+    metadata = {
+      name = local.clusterIssuerSettings.nameProduction
+    }
+    spec = {
+      acme = {
+        server  = local.clusterIssuerSettings.productionServer
+        email   = local.clusterIssuerSettings.email
+        privateKeySecretRef = {
+          name = local.clusterIssuerSettings.nameProduction
         }
         solvers = [{
           dns01 = {
