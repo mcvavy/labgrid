@@ -1,7 +1,8 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: {{ .Values.pgcluster.name | quote }}
+  # name: {{ .Values.pgcluster.name | quote }}
+  # name: {{ .Values.pgcluster.name | quote }}
   namespace: {{ .Release.Namespace | default .Values.namespaceOverride }}
   labels:
     app.kubernetes.io/component: {{ .Values.pgcluster.name | quote }}
