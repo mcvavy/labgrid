@@ -4,7 +4,9 @@ keycloak:
   replicaCount: 2
   image:
     debug: false
+
   production: true
+
   externalDatabase:
     existingSecret: "iam-pgcluster-app"
 
@@ -37,7 +39,7 @@ pgcluster:
     imagePullPolicy: IfNotPresent
 
     storage:
-      size: 8Gi
+      size: 4Gi
       storageClass: "synology-iscsi-delete"
 
     resources:
@@ -58,99 +60,12 @@ pgcluster:
       topologyKey: topology.kubernetes.io/zone
 
     enableSuperuserAccess: true
-    superuserSecret: "postgres-superuser-external-secret"
 
     enablePDB: true
 
     initdb:
       database: "appdb"
       owner: "labgridappuser"
-      secret:
-        name: "iam-postgres-app-user"
-
 
   backups:
     enabled: true
-    # Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path>
-    destinationPath: "https://labgrid.blob.core.windows.net/labgrid-pg-backup"
-    # -- One of `s3`, `azure` or `google`
-    provider: azure
-    azure:
-      path: "/"
-      connectionString: ""
-      storageAccount: ""
-      storageKey: ""
-      storageSasToken: ""
-      containerName: ""
-      serviceName: blob
-      inheritFromAzureAD: false
-    secret:
-      create: false
-      name: "azure-credential"
-
-    wal:
-      # -- WAL compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
-      compression: gzip
-      # -- Whether to instruct the storage provider to encrypt WAL files. One of `` (use the storage container default), `AES256` or `aws:kms`.
-      encryption: AES256
-      # -- Number of WAL files to be archived or restored in parallel.
-      maxParallel: 1
-    data:
-      # -- Data compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
-      compression: gzip
-      # -- Whether to instruct the storage provider to encrypt data files. One of `` (use the storage container default), `AES256` or `aws:kms`.
-      encryption: AES256
-      # -- Number of data files to be archived or restored in parallel.
-      jobs: 2
-
-    scheduledBackups:
-      -
-        # -- Scheduled backup name
-        name: scheduled-backup
-        # -- Schedule in cron format
-        schedule: "0 0 0 * * *"
-        # schedule: "0 0 0 * * 1,4,7"
-        # -- Backup owner reference
-        backupOwnerReference: self
-        # -- Backup method, can be `barmanObjectStore` (default) or `volumeSnapshot`
-        method: barmanObjectStore
-
-    # -- Retention policy for backups
-    retentionPolicy: "14d"
-
-  externalSecretBackupCredentials:
-    name: azure-credential
-    refreshInterval: "1h"
-    secretStoreRef:
-      name: azure-kv-cluster-store
-      kind: ClusterSecretStore
-    data:
-      - secretKey: AZURE_STORAGE_ACCOUNT
-        remoteRef:
-          key: labgrid-storage-account-name
-      - secretKey: labgrid-storage-account-name
-        remoteRef:
-          key: labgrid-storage-account-name
-      - secretKey: labgrid-blob-sas-token
-        remoteRef:
-          key: labgrid-blob-sas-token
-      - secretKey: AZURE_STORAGE_SAS_TOKEN
-        remoteRef:
-          key: postgres-backup-sas-token
-
-  externalSecretPostgresAppUser:
-    name: iam-postgres-app-user
-    refreshInterval: "1h"
-    secretStoreRef:
-      name: azure-kv-cluster-store
-      kind: ClusterSecretStore
-    target:
-      template:
-        type: kubernetes.io/basic-auth
-    data:
-      - secretKey: username
-        remoteRef:
-          key: iam-postgres-username
-      - secretKey: password
-        remoteRef:
-          key: iam-postgres-password
