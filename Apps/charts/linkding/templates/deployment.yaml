@@ -34,13 +34,7 @@ spec:
       - name: wait-for-postgres-cluster
         image: postgres:latest
         command:
-          - sh
-          - -c
-          - |
-            until pg_isready -h "$PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
-              echo Waiting for the database to be ready...; 
-              sleep 5; 
-            done;
+          {{- toYaml .Values.initContainer.command | nindent 10 }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -62,22 +56,22 @@ spec:
             - name: LD_DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: linkding-pgcluster-app # Auto-created by CNPG
+                  name: {{ .Values.databaseCredential.secretName }}
                   key: username
             - name: LD_DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: linkding-pgcluster-app # Auto-created by CNPG
+                  name: {{ .Values.databaseCredential.secretName }}
                   key: host
             - name: LD_DB_PORT
               valueFrom:
                 secretKeyRef:
-                  name: linkding-pgcluster-app # Auto-created by CNPG
+                  name: {{ .Values.databaseCredential.secretName }}
                   key: port
             - name: LD_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: linkding-pgcluster-app # Auto-created by CNPG
+                  name: {{ .Values.databaseCredential.secretName }}
                   key: password
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}

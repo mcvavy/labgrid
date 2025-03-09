@@ -115,6 +115,19 @@ persistentVolumeClaim:
   # -- Additional labels for the persistent volume claim object.
   labels: {}
 
+databaseCredential:
+  secretName: linkding-pgcluster-app
+
+initContainer:
+  command:
+    - sh
+    - -c
+    - |
+      until pg_isready -h "$LINKDING_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+        echo Waiting for the database to be ready...; 
+        sleep 5; 
+      done;
+
 
 pgcluster:
   enabled: true
