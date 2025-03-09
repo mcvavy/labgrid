@@ -13,6 +13,15 @@ ingress:
         - path: /
           pathType: ImplementationSpecific
 
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
 
 # Additional volumes on the output Deployment definition.
 volumes:
