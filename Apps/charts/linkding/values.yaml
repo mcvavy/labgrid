@@ -1,0 +1,229 @@
+# Default values for linkding.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+
+image:
+  repository: sissbruecker/linkding
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest-plus"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: bookmarks.labgrid.net
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes:
+- name: linkding-data
+  persistentVolumeClaim:
+    claimName: linkding-storage
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+- name: linkding-data
+  mountPath: "/etc/linkding/data"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+persistentVolumeClaim:
+  create: true
+  mountPath: /etc/linkding/data
+  accessMode: ReadWriteOnce
+  volumeMode: Filesystem
+  size: 1Gi
+  storageClassName: "synology-iscsi-delete"
+  existingPersistentVolumeClaim: ''
+  annotations: {}
+  # -- Additional labels for the persistent volume claim object.
+  labels: {}
+
+
+pgcluster:
+  enabled: true
+  type: postgresql
+
+  version:
+    # -- PostgreSQL major version to use
+    postgresql: "17"
+
+  mode: standalone
+
+  cluster:
+    instances: 1
+    imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
+    imagePullPolicy: IfNotPresent
+
+    storage:
+      size: 8Gi
+      storageClass: "synology-iscsi-delete"
+
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "1"
+      limits:
+        memory: "1Gi"
+        cpu: "2"
+
+    priorityClassName: ""
+    primaryUpdateMethod: switchover
+    primaryUpdateStrategy: unsupervised
+    logLevel: "info"
+
+    affinity:
+      enablePodAntiAffinity: true
+      topologyKey: topology.kubernetes.io/zone
+
+    enableSuperuserAccess: true
+
+    enablePDB: true
+
+    initdb:
+      database: "linkding"
+      owner: "labgridappuser"
+
+
+  backups:
+    enabled: true
+    # Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path>
+    destinationPath: "https://labgrid.blob.core.windows.net/linkding-pg-backup"
+    # -- One of `s3`, `azure` or `google`
+    provider: azure
+    azure:
+      path: "/"
+      connectionString: ""
+      storageAccount: ""
+      storageKey: ""
+      storageSasToken: ""
+      containerName: ""
+      serviceName: blob
+      inheritFromAzureAD: false
+    secret:
+      create: false
+      name: "azure-credential"
+
+    wal:
+      # -- WAL compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
+      compression: gzip
+      # -- Whether to instruct the storage provider to encrypt WAL files. One of `` (use the storage container default), `AES256` or `aws:kms`.
+      encryption: AES256
+      # -- Number of WAL files to be archived or restored in parallel.
+      maxParallel: 1
+    data:
+      # -- Data compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
+      compression: gzip
+      # -- Whether to instruct the storage provider to encrypt data files. One of `` (use the storage container default), `AES256` or `aws:kms`.
+      encryption: AES256
+      # -- Number of data files to be archived or restored in parallel.
+      jobs: 2
+
+    scheduledBackups:
+      -
+        # -- Scheduled backup name
+        name: scheduled-backup
+        # -- Schedule in cron format
+        schedule: "0 0 0 * * *"
+        # schedule: "0 0 0 * * 1,4,7"
+        # -- Backup owner reference
+        backupOwnerReference: self
+        # -- Backup method, can be `barmanObjectStore` (default) or `volumeSnapshot`
+        method: barmanObjectStore
+
+    # -- Retention policy for backups
+    retentionPolicy: "14d"
+
+  externalSecretBackupCredentials:
+    name: azure-credential
+    refreshInterval: "1h"
+    secretStoreRef:
+      name: azure-kv-cluster-store
+      kind: ClusterSecretStore
+    data:
+      - secretKey: AZURE_STORAGE_ACCOUNT
+        remoteRef:
+          key: labgrid-storage-account-name
+      - secretKey: AZURE_STORAGE_SAS_TOKEN
+        remoteRef:
+          key: linkding-pg-backup-sas-token
