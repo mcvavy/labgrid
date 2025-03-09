@@ -77,15 +77,12 @@ pgcluster:
       topologyKey: topology.kubernetes.io/zone
 
     enableSuperuserAccess: true
-    # superuserSecret: "postgres-superuser-external-secret"
 
     enablePDB: true
 
     initdb:
       database: "appdb"
       owner: "labgridappuser"
-      # secret:
-      #   name: "iam-postgres-app-user"
 
 
   backups:
