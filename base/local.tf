@@ -59,4 +59,11 @@ locals {
     serviceAccountUsername = var.synologyServiceAccountUsername
     serviceAccountPassword = var.synologyServiceAccountPassword
   }
+
+  pgAdminSettings = {
+    name          = "pgadmin4"
+    namespace     = "pg-admin-system"
+    chart_version = "1.35.0"
+    repository    = "https://helm.runix.net"
+  }
 }

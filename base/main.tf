@@ -300,44 +300,61 @@ resource "kubernetes_manifest" "azure-kv-cluster-store" {
   }
 }
 
-resource "kubernetes_manifest" "postgres_cluster_superuser" {
+resource "kubernetes_manifest" "pg-admin-namespace" {
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
-    kind       = "ClusterExternalSecret"
+    apiVersion = "v1"
+    kind       = "Namespace"
     metadata = {
-      name = "postgres-cluster-superuser"
-    }
-    spec = {
-      externalSecretName = "postgres-superuser-external-secret"
-      refreshTime        = "1h"
-
-      externalSecretSpec = {
-        secretStoreRef = {
-          name = "azure-kv-cluster-store"
-          kind = "ClusterSecretStore"
-        }
-        refreshInterval = "36h"
-        target = {
-          name     = "postgres-superuser-secret"
-          template = {
-            type = "kubernetes.io/basic-auth"
-          }
-        }
-        data = [
-          {
-            secretKey = "username"
-            remoteRef = {
-              key = "postgres-super-user"
-            }
-          },
-          {
-            secretKey = "password"
-            remoteRef = {
-              key = "postgres-super-user-password"
-            }
-          }
-        ]
-      }
+      name = local.pgAdminSettings.namespace
     }
   }
+}
+
+resource "kubernetes_manifest" "pg-admin-password" {
+  depends_on = [ kubernetes_manifest.pg-admin-namespace ]
+
+  manifest = {
+    apiVersion = "external-secrets.io/v1beta1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name = "pg-admin-password"
+      namespace = kubernetes_manifest.pg-admin-namespace.manifest.metadata.name
+    }
+    spec = {
+      secretStoreRef = {
+        name = "azure-kv-cluster-store"
+        kind = "ClusterSecretStore"
+      }
+      refreshInterval = "36h"
+      target = {
+        name     = "pg-admin-password-secret"
+        template = {
+          type = "kubernetes.io/basic-auth"
+        }
+      }
+      data = [
+        {
+          secretKey = "password"
+          remoteRef = {
+            key = "pg-admin-password"
+          }
+        }
+      ]
+    }
+  }
+}
+
+
+resource "helm_release" "pgadmin" {
+  depends_on = [ kubernetes_manifest.pg-admin-password ]
+
+  name             = local.pgAdminSettings.name
+  repository       = local.pgAdminSettings.repository
+  chart            = local.pgAdminSettings.name
+  namespace        = kubernetes_manifest.pg-admin-namespace.manifest.metadata.name
+  version          = local.pgAdminSettings.chart_version
+
+  values = [ 
+    file("${path.module}/values/pgadmin/values.yaml") 
+    ]
 }
