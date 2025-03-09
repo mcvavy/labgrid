@@ -1,0 +1,119 @@
+replicaCount: 1
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: bookmarks-stg.labgrid.net
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+
+# Additional volumes on the output Deployment definition.
+volumes:
+- name: linkding-data
+  persistentVolumeClaim:
+    claimName: linkding-stg-storage
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+- name: linkding-data
+  mountPath: "/etc/linkding/data"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+persistentVolumeClaim:
+  create: true
+  accessMode: ReadWriteOnce
+  volumeMode: Filesystem
+  size: 1Gi
+  storageClassName: "local-path"
+  existingPersistentVolumeClaim: ''
+  annotations: {}
+  # -- Additional labels for the persistent volume claim object.
+  labels: {}
+
+databaseCredential:
+  secretName: linkding-stg-pgcluster-app
+
+initContainer:
+  command:
+    - sh
+    - -c
+    - |
+      until pg_isready -h "$LINKDING_STG_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+        echo Waiting for the database to be ready...; 
+        sleep 5; 
+      done;
+
+
+pgcluster:
+  enabled: true
+  type: postgresql
+
+  version:
+    # -- PostgreSQL major version to use
+    postgresql: "17"
+
+  mode: standalone
+
+  cluster:
+    instances: 1
+    imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
+    imagePullPolicy: IfNotPresent
+
+    storage:
+      size: 4Gi
+      storageClass: "local-path"
+
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "1"
+      limits:
+        memory: "1Gi"
+        cpu: "2"
+
+    priorityClassName: ""
+    primaryUpdateMethod: switchover
+    primaryUpdateStrategy: unsupervised
+    logLevel: "info"
+
+    affinity:
+      enablePodAntiAffinity: true
+      topologyKey: topology.kubernetes.io/zone
+
+    enableSuperuserAccess: true
+
+    enablePDB: true
+
+    initdb:
+      database: "linkding"
+      owner: "labgridappuser"
+
+
+  backups:
+    enabled: false
+
+  externalSecretBackupCredentials:
+    enabled: false
