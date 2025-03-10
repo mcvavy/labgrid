@@ -93,6 +93,7 @@ volumes:
 - name: linkding-data
   persistentVolumeClaim:
     claimName: linkding-storage
+  emptyDir: {}
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
