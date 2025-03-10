@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 2
+replicaCount: 1
 
 ingress:
   enabled: true
@@ -84,7 +84,7 @@ pgcluster:
   mode: standalone
 
   cluster:
-    instances: 2
+    instances: 1
     imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
     imagePullPolicy: IfNotPresent
 
