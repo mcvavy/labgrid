@@ -50,7 +50,7 @@ spec:
               value: UTC
             # PostgreSQL Configuration
             - name: LD_DB_ENGINE
-              value: postgresql
+              value: postgres
             - name: LD_DB_DATABASE
               value: linkding
             - name: LD_DB_USER
