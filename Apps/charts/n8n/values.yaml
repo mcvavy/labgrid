@@ -240,14 +240,14 @@ n8n:
     initContainers:
     - name: wait-for-postgres-cluster
       image: postgres:latest
-        command:
-          - sh
-          - -c
-          - |
-            until pg_isready -h "$N8N_STG_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do
-              echo Waiting for the database to be ready...
-              sleep 5
-            done;
+      command:
+        - sh
+        - -c
+        - |
+          until pg_isready -h "$N8N_STG_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do
+            echo Waiting for the database to be ready...
+            sleep 5
+          done;
     #    - name: init-data-dir
     #      image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
     #      command: [ "/bin/sh", "-c", "mkdir -p /home/node/.n8n/" ]

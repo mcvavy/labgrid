@@ -1,0 +1,9 @@
+dependencies:
+- name: n8n
+  repository: oci://8gears.container-registry.com/library
+  version: 1.0.4
+- name: cluster
+  repository: https://cloudnative-pg.github.io/charts
+  version: 0.2.1
+digest: sha256:6cf283db079ca79afcbe2a62f2ec3f1adfde3085f4e8661a6e29f128398116dd
+generated: "2025-03-11T22:28:01.256504793Z"
