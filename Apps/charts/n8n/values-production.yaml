@@ -1,4 +1,4 @@
-replicaCount: 2
+replicaCount: 1
 
 n8nEnvironment:
 - name: N8N_ENCRYPTION_KEY
