@@ -1,37 +1,39 @@
 replicaCount: 1
 
 n8nEnvironment:
-- name: N8N_ENCRYPTION_KEY
-  valueFrom:
-    secretKeyRef:
-      name: "azure-credential"
-      key: N8N_ENCRYPTION_KEY
+# - name: N8N_ENCRYPTION_KEY
+#   valueFrom:
+#     secretKeyRef:
+#       name: "azure-credential"
+#       key: N8N_ENCRYPTION_KEY
 - name: DB_TYPE
   value: "postgresdb"
+- name: N8N_PORT
+  value: http
 - name: DB_POSTGRESDB_HOST
   valueFrom:
     secretKeyRef:
-      name: "n8n-pgcluster-app"
+      name: n8n-pgcluster-app
       key: host
 - name: DB_POSTGRESDB_PORT
   valueFrom:
     secretKeyRef:
-      name: "n8n-pgcluster-app"
+      name: n8n-pgcluster-app
       key: port
 - name: DB_POSTGRESDB_DATABASE
   valueFrom:
     secretKeyRef:
-      name: "n8n-pgcluster-app"
+      name: n8n-pgcluster-app
       key: dbname
 - name: DB_POSTGRESDB_USER
   valueFrom:
     secretKeyRef:
-      name: "n8n-pgcluster-app"
+      name: n8n-pgcluster-app
       key: username
 - name: DB_POSTGRESDB_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: "n8n-pgcluster-app"
+      name: n8n-pgcluster-app
       key: password
 
 ingress:
@@ -68,7 +70,7 @@ affinity: {}
 
 persistentVolumeClaim:
   create: true
-  accessMode: ReadWriteMany
+  accessMode: ReadWriteOnce
   volumeMode: Filesystem
   size: 1Gi
   storageClassName: "synology-iscsi-delete"
