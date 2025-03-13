@@ -22,7 +22,7 @@ n8nEnvironment:
   valueFrom:
     secretKeyRef:
       name: "n8n-pgcluster-app"
-      key: database
+      key: dbname
 - name: DB_POSTGRESDB_USER
   valueFrom:
     secretKeyRef:
