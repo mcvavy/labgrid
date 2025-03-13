@@ -5,10 +5,6 @@ type: application
 version: 0.1.0
 appVersion: "1.16.0"
 dependencies:
-  - name: n8n
-    enabled: true
-    version: 1.0.4
-    repository: oci://8gears.container-registry.com/library
   - name: cluster
     alias: pgcluster
     enabled: true

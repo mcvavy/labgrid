@@ -1,39 +1,44 @@
-replicaCount: 1
+replicaCount: 2
 
 n8nEnvironment:
+- name: N8N_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: "azure-credential"
+      key: N8N_ENCRYPTION_KEY
 - name: DB_TYPE
   value: "postgresdb"
 - name: DB_POSTGRESDB_HOST
   valueFrom:
     secretKeyRef:
-      name: n8n-stg-pgcluster-app
+      name: "n8n-pgcluster-app"
       key: host
 - name: DB_POSTGRESDB_PORT
   valueFrom:
     secretKeyRef:
-      name: n8n-stg-pgcluster-app
+      name: "n8n-pgcluster-app"
       key: port
 - name: DB_POSTGRESDB_DATABASE
   valueFrom:
     secretKeyRef:
-      name: n8n-stg-pgcluster-app
+      name: "n8n-pgcluster-app"
       key: database
 - name: DB_POSTGRESDB_USER
   valueFrom:
     secretKeyRef:
-      name: n8n-stg-pgcluster-app
+      name: "n8n-pgcluster-app"
       key: username
 - name: DB_POSTGRESDB_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: n8n-stg-pgcluster-app
+      name: "n8n-pgcluster-app"
       key: password
 
 ingress:
   enabled: true
   className: "nginx"
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     
@@ -42,7 +47,7 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
-    - host: n8n-stg.labgrid.net
+    - host: n8n.labgrid.net
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -52,7 +57,7 @@ ingress:
 volumes:
 - name: n8n-data
   persistentVolumeClaim:
-    claimName: n8n-stg-storage
+    claimName: n8n-storage
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
@@ -71,21 +76,21 @@ persistentVolumeClaim:
   accessMode: ReadWriteOnce
   volumeMode: Filesystem
   size: 1Gi
-  storageClassName: "local-path"
+  storageClassName: "synology-iscsi-delete"
   existingPersistentVolumeClaim: ''
   annotations: {}
   # -- Additional labels for the persistent volume claim object.
   labels: {}
 
 databaseCredential:
-  secretName: n8n-stg-pgcluster-app
+  secretName: n8n-pgcluster-app
 
 initContainer:
   command:
     - sh
     - -c
     - |
-      until pg_isready -h "$N8N_STG_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+      until pg_isready -h "$N8N_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
         echo Waiting for the database to be ready...; 
         sleep 5; 
       done;
@@ -107,8 +112,8 @@ pgcluster:
     imagePullPolicy: IfNotPresent
 
     storage:
-      size: 4Gi
-      storageClass: "local-path"
+      size: 8Gi
+      storageClass: "synology-iscsi-delete"
 
     resources:
       requests:
@@ -137,7 +142,7 @@ pgcluster:
 
 
   backups:
-    enabled: false
+    enabled: true
 
   externalSecretBackupCredentials:
-    enabled: false
+    enabled: true

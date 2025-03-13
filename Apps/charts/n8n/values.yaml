@@ -1,291 +1,146 @@
-n8n:
-  image:
-    repository: n8nio/n8n
-    pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "1.82.1"
-  imagePullSecrets: []
+replicaCount: 2
 
-  # The Name to use for the chart. Will be the prefix of all resources aka. The Chart.Name (default is 'n8n')
-  nameOverride:
-  # Override the full name of the deployment. When empty, the name will be "{release-name}-{chart-name}" or the value of nameOverride if specified
-  fullnameOverride:
+image:
+  repository: n8nio/n8n
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "1.83.1"
 
-  # Add entries to a pod's /etc/hosts file, mapping custom IP addresses to hostnames.
-  hostAliases: []
-    # - ip: 8.8.8.8
-    #   hostnames:
-    #     - service-example.local
-  #
-  # Ingress
-  #
-  ingress:
-    enabled: true
-    annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-production"
-      nginx.ingress.kubernetes.io/proxy-body-size: "0"
-      nginx.ingress.kubernetes.io/proxy-buffering: "off"
-      nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    className: "nginx"
-    hosts:
-      - host: n8n.labgrid.net
-        paths: []
-    tls: []
-      # - hosts:
-      #     - workflow.example.com
-      #   secretName: host-domain-cert
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
 
-  # the main (n8n) application related configuration + Kubernetes specific settings
-  # The config: {} dictionary is converted to environmental variables in the ConfigMap.
-  main:
-    # See https://docs.n8n.io/hosting/configuration/environment-variables/ for all values.
-    config: {}
-    #    n8n:
-    #    db:
-    #      type: postgresdb
-    #      postgresdb:
-    #        host: 192.168.0.52
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
 
-    # Dictionary for secrets, unlike config:, the values here will end up in the secret file.
-    # The YAML entry db.postgresdb.password: my_secret is transformed DB_POSTGRESDB_password=bXlfc2VjcmV0
-    # See https://docs.n8n.io/hosting/configuration/environment-variables/
-    secret: {}
-    #    n8n:
-    #     if you run n8n stateless, you should provide an encryption key here.
-    #      encryption_key:
-    #
-    #    database:
-    #      postgresdb:
-    #        password: 'big secret'
+podAnnotations: {}
+podLabels: {}
 
-    # Extra environmental variables, so you can reference other configmaps and secrets into n8n as env vars.
-    extraEnv:
-      N8N_ENCRYPTION_KEY:
-        valueFrom:
-          secretKeyRef:
-            name: azure-credential
-            key: N8N_ENCRYPTION_KEY
-      DB_TYPE:
-        value: "postgresdb"
-      DB_POSTGRESDB_HOST:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-pgcluster-app
-            key: host
-      DB_POSTGRESDB_PORT:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-pgcluster-app
-            key: port
-      DB_POSTGRESDB_DATABASE:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-pgcluster-app
-            key: database
-      DB_POSTGRESDB_USER:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-pgcluster-app
-            key: username
-      DB_POSTGRESDB_PASSWORD:
-        valueFrom:
-          secretKeyRef:
-            name: n8n-pgcluster-app
-            key: password
+podSecurityContext: {}
+  # fsGroup: 2000
 
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
 
-    persistence:
-      # If true, use a Persistent Volume Claim, If false, use emptyDir
-      enabled: true
-      # what type volume, possible options are [existing, emptyDir, dynamic] dynamic for Dynamic Volume Provisioning, existing for using an existing Claim
-      type: emptyDir
-      # Persistent Volume Storage Class
-      # If defined, storageClassName: <storageClass>
-      # If set to "-", storageClassName: "", which disables dynamic provisioning
-      # If undefined (the default) or set to null, no storageClassName spec is
-      #   set, choosing the default provisioner.  (gp2 on AWS, standard on
-      #   GKE, AWS & OpenStack)
-      #
-      storageClass: "synology-iscsi-delete"
-      # PVC annotations
-      #
-      # If you need this annotation include it under `values.yml` file and pvc.yml template will add it.
-      # This is not maintained at Helm v3 anymore.
-      # https://github.com/8gears/n8n-helm-chart/issues/8
-      #
-      # annotations:
-      #   helm.sh/resource-policy: keep
-      # Persistent Volume Access Mode
-      #
-      accessModes:
-        - ReadWriteOnce
-      # Persistent Volume size
-      size: 1Gi
-      # Use an existing PVC
-      # existingClaim:
+service:
+  type: ClusterIP
+  port: 5678
 
-    extraVolumes: []
-    #    - name: db-ca-cert
-    #      secret:
-    #        secretName: db-ca
-    #        items:
-    #          - key: ca.crt
-    #            path: ca.crt
+n8nEnvironment: []
 
-    extraVolumeMounts: []
-    #    - name: db-ca-cert
-    #      mountPath: /etc/ssl/certs/postgresql
-    #      readOnly: true
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: n8n.labgrid.net
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 5678
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 5678
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes:
+- name: n8n-data
+  persistentVolumeClaim:
+    claimName: n8n-storage
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+- name: n8n-data
+  mountPath: "/home/node/.n8n"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
 
 
-    # Number of desired pods. More than one pod is supported in n8n enterprise.
-    replicaCount: 1
+persistentVolumeClaim:
+  create: true
+  mountPath: /home/node/.n8n
+  accessMode: ReadWriteOnce
+  volumeMode: Filesystem
+  size: 1Gi
+  storageClassName: "synology-iscsi-delete"
+  existingPersistentVolumeClaim: ''
+  annotations: {}
+  # -- Additional labels for the persistent volume claim object.
+  labels: {}
 
-    # here you can specify the deployment strategy as Recreate or RollingUpdate with optional maxSurge and maxUnavailable
-    # If these options are not set, default values are 25%
-    # deploymentStrategy:
-    #  type: Recreate | RollingUpdate
-    #  maxSurge: "50%"
-    #  maxUnavailable: "50%"
+databaseCredential:
+  secretName: n8n-stg-pgcluster-app
 
-    deploymentStrategy:
-      type: "Recreate"
-      #  maxSurge: "50%"
-      #  maxUnavailable: "50%"
-
-    serviceAccount:
-      # Specifies whether a service account should be created
-      create: false
-      # Annotations to add to the service account
-      annotations: {}
-      # The name of the service account to use.
-      # If not set and create is true, a name is generated using the fullname template
-      name: ""
-
-    # Annotations to be implemented on the main service deployment
-    deploymentAnnotations: {}
-    # Labels to be implemented on the main service deployment
-    deploymentLabels: {}
-    # Annotations to be implemented on the main service pod
-    podAnnotations: {}
-    # Labels to be implemented on the main service pod
-    podLabels: {}
-
-    podSecurityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      runAsGroup: 1000
-      fsGroup: 1000
-
-    securityContext: {}
-    # capabilities:
-    #   drop:
-    #   - ALL
-    # readOnlyRootFilesystem: true
-    #  runAsNonRoot: true
-    #  runAsUser: 1000
-
-    # here you can specify lifecycle hooks - it can be used e.g., to easily add packages to the container without building
-    # your own docker image
-    # see https://github.com/8gears/n8n-helm-chart/pull/30
-    lifecycle: {}
-
-    #  here's the sample configuration to add mysql-client to the container
-    # lifecycle:
-    #  postStart:
-    #    exec:
-    #      command: ["/bin/sh", "-c", "apk add mysql-client"]
-
-    # here you can override a command for main container
-    # it may be used to override a starting script (e.g., to resolve issues like https://github.com/n8n-io/n8n/issues/6412) or run additional preparation steps (e.g., installing additional software)
-    command: []
-
-    # sample configuration that overrides starting script and solves above issue (also it runs n8n as root, so be careful):
-    # command:
-    #  - tini
-    #  - --
-    #  - /bin/sh
-    #  - -c
-    #  - chmod o+rx /root; chown -R node /root/.n8n || true; chown -R node /root/.n8n; ln -s /root/.n8n /home/node; chown -R node /home/node || true; node /usr/local/bin/n8n
-
-    # here you can override the livenessProbe for the main container
-    # it may be used to increase the timeout for the livenessProbe (e.g., to resolve issues like
-
-    livenessProbe:
-      httpGet:
-        path: /healthz
-        port: http
-      # initialDelaySeconds: 30
-      # periodSeconds: 10
-      # timeoutSeconds: 5
-      # failureThreshold: 6
-      # successThreshold: 1
-
-    # here you can override the readinessProbe for the main container
-    # it may be used to increase the timeout for the readinessProbe (e.g., to resolve issues like
-
-    readinessProbe:
-      httpGet:
-        path: /healthz
-        port: http
-      # initialDelaySeconds: 30
-      # periodSeconds: 10
-      # timeoutSeconds: 5
-      # failureThreshold: 6
-      # successThreshold: 1
-
-    # List of initialization containers belonging to the pod. Init containers are executed in order prior to containers being started.
-    # See https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
-    initContainers:
-    - name: wait-for-postgres-cluster
-      image: postgres:latest
-      command:
-        - sh
-        - -c
-        - |
-          until pg_isready -h "$N8N_STG_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do
-            echo Waiting for the database to be ready...
-            sleep 5
-          done;
-    #    - name: init-data-dir
-    #      image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-    #      command: [ "/bin/sh", "-c", "mkdir -p /home/node/.n8n/" ]
-    #      volumeMounts:
-    #        - name: data
-    #          mountPath: /home/node/.n8n
-
-
-    service:
-      annotations: {}
-      # -- Service types allow you to specify what kind of Service you want.
-      # E.g., ClusterIP, NodePort, LoadBalancer, ExternalName
-      type: ClusterIP
-      # -- Service port
-      port: 80
-
-    autoscaling:
-      enabled: false
-      minReplicas: 1
-      maxReplicas: 100
-      targetCPUUtilizationPercentage: 80
-      # targetMemoryUtilizationPercentage: 80
-
-    nodeSelector: {}
-    tolerations: []
-    affinity: {}
-
-  worker:
-    enabled: false
-  webhook:
-    enabled: false
-  extraManifests: []
-  extraTemplateManifests: []
-  valkey:
-    enabled: false
-
-
-
+initContainer:
+  command:
+    - sh
+    - -c
+    - |
+      until pg_isready -h "$PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+        echo Waiting for the database to be ready...; 
+        sleep 5; 
+      done;
 
 pgcluster:
   enabled: true
