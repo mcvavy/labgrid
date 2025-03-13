@@ -1,0 +1,250 @@
+replicaCount: 2
+
+image:
+  repository: n8nio/n8n
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "1.83.1"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 5678
+
+n8nEnvironment: []
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: n8n.labgrid.net
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 5678
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+# readinessProbe:
+#   httpGet:
+#     path: /health
+#     port: 5678
+#   initialDelaySeconds: 5
+#   periodSeconds: 10
+#   timeoutSeconds: 3
+#   failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes:
+- name: n8n-data
+  persistentVolumeClaim:
+    claimName: n8n-storage
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+- name: n8n-data
+  mountPath: "/home/node/.n8n"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+persistentVolumeClaim:
+  create: true
+  mountPath: /home/node/.n8n
+  accessMode: ReadWriteOnce
+  volumeMode: Filesystem
+  size: 1Gi
+  storageClassName: "synology-iscsi-delete"
+  existingPersistentVolumeClaim: ''
+  annotations: {}
+  # -- Additional labels for the persistent volume claim object.
+  labels: {}
+
+databaseCredential:
+  secretName: n8n-stg-pgcluster-app
+
+initContainer:
+  command:
+    - sh
+    - -c
+    - |
+      until pg_isready -h "$PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+        echo Waiting for the database to be ready...; 
+        sleep 5; 
+      done;
+
+pgcluster:
+  enabled: true
+  type: postgresql
+
+  version:
+    # -- PostgreSQL major version to use
+    postgresql: "17"
+
+  mode: standalone
+
+  cluster:
+    instances: 1
+    imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
+    imagePullPolicy: IfNotPresent
+
+    storage:
+      size: 8Gi
+      storageClass: "synology-iscsi-delete"
+
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "1"
+      limits:
+        memory: "1Gi"
+        cpu: "2"
+
+    priorityClassName: ""
+    primaryUpdateMethod: switchover
+    primaryUpdateStrategy: unsupervised
+    logLevel: "info"
+
+    affinity:
+      enablePodAntiAffinity: true
+      topologyKey: topology.kubernetes.io/zone
+
+    enableSuperuserAccess: true
+
+    enablePDB: true
+
+    initdb:
+      database: "n8n"
+      owner: "labgridappuser"
+
+
+  backups:
+    enabled: true
+    # Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path>
+    destinationPath: "https://labgrid.blob.core.windows.net/n8n-pg-backup"
+    # -- One of `s3`, `azure` or `google`
+    provider: azure
+    azure:
+      path: "/"
+      connectionString: ""
+      storageAccount: ""
+      storageKey: ""
+      storageSasToken: ""
+      containerName: ""
+      serviceName: blob
+      inheritFromAzureAD: false
+    secret:
+      create: false
+      name: "azure-credential"
+
+    wal:
+      # -- WAL compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
+      compression: gzip
+      # -- Whether to instruct the storage provider to encrypt WAL files. One of `` (use the storage container default), `AES256` or `aws:kms`.
+      encryption: AES256
+      # -- Number of WAL files to be archived or restored in parallel.
+      maxParallel: 1
+    data:
+      # -- Data compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
+      compression: gzip
+      # -- Whether to instruct the storage provider to encrypt data files. One of `` (use the storage container default), `AES256` or `aws:kms`.
+      encryption: AES256
+      # -- Number of data files to be archived or restored in parallel.
+      jobs: 2
+
+    scheduledBackups:
+      -
+        # -- Scheduled backup name
+        name: scheduled-backup
+        # -- Schedule in cron format
+        schedule: "0 0 0 * * *"
+        # schedule: "0 0 0 * * 1,4,7"
+        # -- Backup owner reference
+        backupOwnerReference: self
+        # -- Backup method, can be `barmanObjectStore` (default) or `volumeSnapshot`
+        method: barmanObjectStore
+
+    # -- Retention policy for backups
+    retentionPolicy: "14d"
+
+  externalSecretBackupCredentials:
+    enabled: true
+    name: azure-credential
+    refreshInterval: "1h"
+    secretStoreRef:
+      name: azure-kv-cluster-store
+      kind: ClusterSecretStore
+    data:
+      - secretKey: AZURE_STORAGE_ACCOUNT
+        remoteRef:
+          key: labgrid-storage-account-name
+      - secretKey: AZURE_STORAGE_SAS_TOKEN
+        remoteRef:
+          key: n8n-pg-backup-sas-token
+      - secretKey: N8N_ENCRYPTION_KEY
+        remoteRef:
+          key: n8n-encryption-key

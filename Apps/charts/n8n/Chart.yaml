@@ -1,0 +1,16 @@
+apiVersion: v2
+name: n8n
+description: A Helm chart for n8n with PostgreSQL using CloudNativePG
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+dependencies:
+  - name: cluster
+    alias: pgcluster
+    enabled: true
+    version: 0.2.1
+    repository: https://cloudnative-pg.github.io/charts
+maintainers:
+  - name: LabGrid Labs
+    email: admin@labgrid.net
+    url: blog.labgrid.net

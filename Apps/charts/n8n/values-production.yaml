@@ -1,0 +1,143 @@
+replicaCount: 2
+
+n8nEnvironment:
+- name: N8N_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: "azure-credential"
+      key: N8N_ENCRYPTION_KEY
+- name: DB_TYPE
+  value: "postgresdb"
+- name: DB_POSTGRESDB_HOST
+  valueFrom:
+    secretKeyRef:
+      name: "n8n-pgcluster-app"
+      key: host
+- name: DB_POSTGRESDB_PORT
+  valueFrom:
+    secretKeyRef:
+      name: "n8n-pgcluster-app"
+      key: port
+- name: DB_POSTGRESDB_DATABASE
+  valueFrom:
+    secretKeyRef:
+      name: "n8n-pgcluster-app"
+      key: dbname
+- name: DB_POSTGRESDB_USER
+  valueFrom:
+    secretKeyRef:
+      name: "n8n-pgcluster-app"
+      key: username
+- name: DB_POSTGRESDB_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: "n8n-pgcluster-app"
+      key: password
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: n8n.labgrid.net
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+
+# Additional volumes on the output Deployment definition.
+volumes:
+- name: n8n-data
+  persistentVolumeClaim:
+    claimName: n8n-storage
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+- name: n8n-data
+  mountPath: "/home/node/.n8n"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+persistentVolumeClaim:
+  create: true
+  accessMode: ReadWriteOnce
+  volumeMode: Filesystem
+  size: 1Gi
+  storageClassName: "synology-iscsi-delete"
+  existingPersistentVolumeClaim: ''
+  annotations: {}
+  # -- Additional labels for the persistent volume claim object.
+  labels: {}
+
+databaseCredential:
+  secretName: n8n-pgcluster-app
+
+initContainer:
+  command:
+    - sh
+    - -c
+    - |
+      until pg_isready -h "$N8N_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+        echo Waiting for the database to be ready...; 
+        sleep 5; 
+      done;
+
+
+pgcluster:
+  enabled: true
+  type: postgresql
+
+  version:
+    # -- PostgreSQL major version to use
+    postgresql: "17"
+
+  mode: standalone
+
+  cluster:
+    instances: 1
+    imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
+    imagePullPolicy: IfNotPresent
+
+    storage:
+      size: 8Gi
+      storageClass: "synology-iscsi-delete"
+
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "1"
+      limits:
+        memory: "1Gi"
+        cpu: "2"
+
+    priorityClassName: ""
+    primaryUpdateMethod: switchover
+    primaryUpdateStrategy: unsupervised
+    logLevel: "info"
+
+    affinity:
+      enablePodAntiAffinity: true
+      topologyKey: topology.kubernetes.io/zone
+
+    enableSuperuserAccess: true
+
+    enablePDB: true
+
+    initdb:
+      database: "n8n"
+      owner: "labgridappuser"
+
+
+  backups:
+    enabled: true
+
+  externalSecretBackupCredentials:
+    enabled: true
