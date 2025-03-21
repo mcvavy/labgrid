@@ -35,6 +35,16 @@ spec:
         image: postgres:latest
         command:
           {{- toYaml .Values.initContainer.command | nindent 10 }}
+      - name: volume-permission-fix
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 /home/node/.n8n"]
+        {{- with .Values.volumeMounts }}
+        volumeMounts:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
