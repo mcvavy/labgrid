@@ -31,10 +31,10 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
-      - name: wait-for-postgres-cluster
-        image: postgres:latest
-        command:
-          {{- toYaml .Values.initContainer.command | nindent 10 }}
+      # - name: wait-for-postgres-cluster
+      #   image: postgres:latest
+      #   command:
+      #     {{- toYaml .Values.initContainer.command | nindent 10 }}
       - name: n8n-volume-permission-fix
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
         command: ["sh", "-c", "chown 1000:1000 /home/node/.n8n"]
