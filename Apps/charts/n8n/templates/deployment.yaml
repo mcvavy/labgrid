@@ -38,6 +38,10 @@ spec:
         volumeMounts:
           {{- toYaml . | nindent 10 }}
         {{- end }}
+      - name: wait-for-postgres-cluster
+        image: postgres:latest
+        command:
+          {{- toYaml .Values.initContainer.command | nindent 10 }}
         securityContext:
           runAsUser: 0
           runAsGroup: 0
