@@ -81,7 +81,7 @@ livenessProbe:
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 3
-readinessProbe: {}
+# readinessProbe:
 #   httpGet:
 #     path: /health
 #     port: 5678
