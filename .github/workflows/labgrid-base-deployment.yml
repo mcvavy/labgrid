@@ -1,0 +1,58 @@
+name: Terraform Deployment of Labgrid Base
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - Base/**
+
+env:
+  TF_VERSION: 1.5.7
+
+jobs:
+  terraform-deploy:
+    runs-on: ubuntu-latest
+    steps:
+     - name: Checkout
+       uses: actions/checkout@v4
+
+     - name: Setup Terraform
+       uses: hashicorp/setup-terraform@v4
+       with:
+         terraform_version: ${{ env.TF_VERSION }}
+
+     # Azure login
+     - name: Azure login
+       uses: azure/login@v2
+       with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+     # Set up kubeconfig from the GitHub Secret
+     - name: Get OIDC Token from Keycloak
+       run: |
+            TOKEN=$(curl -X POST \
+            ${{ secrets.KEYCLOAK_ISSUER_URL }}/protocol/openid-connect/token \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "client_id=github-actions" \
+            -d "client_secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}" \
+            -d "grant_type=client_credentials" | jq -r '.access_token')
+            echo "generated token is: $TOKEN"
+            echo "OIDC_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+     - name: Terraform Init
+       run: terraform init -upgrade
+
+     - name: Terraform Validate
+       run: terraform validate
+
+     - name: Terraform Plan
+       run: terraform plan -var="argocdAdminPassword=${{ secrets.ARGOCD_ADMIN_PASSWORD }}" -auto-approve
+
+     - name: Terraform Apply
+       env:
+         TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
+         TF_VAR_k8s_token: $OIDC_TOKEN
+       run: terraform apply -var="argocdAdminPassword=${{ secrets.ARGOCD_ADMIN_PASSWORD }}" -auto-approve

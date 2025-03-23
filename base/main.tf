@@ -238,6 +238,25 @@ resource "kubernetes_storage_class_v1" "synology-iscsi-delete" {
   }
 }
 
+resource "kubernetes_storage_class_v1" "synology-nfs-delete" {
+  metadata {
+    name = "synology-nfs-delete"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+  storage_provisioner = "csi.san.synology.com"
+  reclaim_policy      = "Delete"
+  allow_volume_expansion = true
+  parameters = {
+    dsm = var.synologyClientIp
+    location = "/volume1"
+    protocol = "nfs"
+    mountPermissions = "0755"
+  }
+  mount_options = ["nfsvers=4.1"]
+}
+
 resource "helm_release" "argocd" {
   depends_on = [ kubernetes_manifest.metallb_l2advertisement ]
 

@@ -37,6 +37,8 @@ provider "azurerm" {
 
 provider "helm" {
   kubernetes {
-    config_path = "~/.kube/config" # Update with your kubeconfig path
+    # config_path = "~/.kube/config" # Update with your kubeconfig path
+    host  = var.k8s_host
+    token = var.k8s_token
   }
 }
