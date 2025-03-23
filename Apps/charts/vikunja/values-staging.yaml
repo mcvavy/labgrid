@@ -3,6 +3,26 @@ replicaCount: 1
 vikunjaEnvironment:
 - name: VIKUNJA_SERVICE_PUBLICURL
   value: https://vikunja-stg.labgrid.net
+- name: VIKUNJA_MAILER_ENABLED
+  value: "true"
+- name: VIKUNJA_MAILER_FROM
+  value: "notifications@email.labgrid.net"
+- name: VIKUNJA_MAILER_HOST
+  value: "email-smtp.eu-north-1.amazonaws.com"
+- name: VIKUNJA_MAILER_PORT
+  value: "587"
+- name: VIKUNJA_MAILER_AUTHTYPE
+  value: "login"
+- name: VIKUNJA_MAILER_USERNAME
+  valueFrom:
+    secretKeyRef:
+      name: azure-credential
+      key: AWS_SMTP_USERNAME
+- name: VIKUNJA_MAILER_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: azure-credential
+      key: AWS_SMTP_PASSWORD 
 - name: VIKUNJA_DATABASE_TYPE
   value: "postgres"
 - name: DB_POSTGRESDB_HOST
