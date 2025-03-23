@@ -10,7 +10,7 @@ resource "argocd_application_set" "staging" {
         revision = "develop"
 
         directory {
-          path = "Apps/charts/n8n"
+          path = "Apps/charts/vikunja"
         }
       }
     }
