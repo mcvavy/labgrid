@@ -61,7 +61,7 @@ jobs:
 
      - name: Terraform Plan
        working-directory: ./Apps
-       run: terraform plan -var="argocdAdminPassword=${{ secrets.ARGOCD_ADMIN_PASSWORD }}" -auto-approve
+       run: terraform plan -var="argocdAdminPassword=${{ secrets.ARGOCD_ADMIN_PASSWORD }}"
 
      - name: Terraform Apply
        working-directory: ./Apps
