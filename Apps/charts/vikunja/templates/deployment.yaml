@@ -47,7 +47,7 @@ spec:
           env:
           {{- toYaml .Values.vikunjaEnvironment | nindent 12 }}
             - name: VIKUNJA_DATABASE_HOST
-              value: "$DB_POSTGRESDB_HOST:$DB_POSTGRESDB_PORT"
+              value: "$(DB_POSTGRESDB_HOST):$(DB_POSTGRESDB_PORT)"
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
