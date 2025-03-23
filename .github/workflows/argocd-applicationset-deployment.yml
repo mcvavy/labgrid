@@ -61,6 +61,9 @@ jobs:
 
      - name: Terraform Plan
        working-directory: ./Apps
+       env:
+         TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
+         TF_VAR_k8s_token: $OIDC_TOKEN
        run: terraform plan -var="argocdAdminPassword=${{ secrets.ARGOCD_ADMIN_PASSWORD }}"
 
      - name: Terraform Apply
