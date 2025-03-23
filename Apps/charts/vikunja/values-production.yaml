@@ -1,39 +1,34 @@
-replicaCount: 1
+replicaCount: 2
 
-n8nEnvironment:
-# - name: N8N_ENCRYPTION_KEY
-#   valueFrom:
-#     secretKeyRef:
-#       name: "azure-credential"
-#       key: N8N_ENCRYPTION_KEY
-- name: DB_TYPE
-  value: "postgresdb"
-- name: N8N_PORT
-  value: http
+vikunjaEnvironment:
+- name: VIKUNJA_SERVICE_PUBLICURL
+  value: https://vikunja.labgrid.net
+- name: VIKUNJA_DATABASE_TYPE
+  value: "postgres"
 - name: DB_POSTGRESDB_HOST
   valueFrom:
     secretKeyRef:
-      name: n8n-pgcluster-app
+      name: vikunja-stg-pgcluster-app
       key: host
 - name: DB_POSTGRESDB_PORT
   valueFrom:
     secretKeyRef:
-      name: n8n-pgcluster-app
+      name: vikunja-stg-pgcluster-app
       key: port
-- name: DB_POSTGRESDB_DATABASE
+- name: VIKUNJA_DATABASE_DATABASE
   valueFrom:
     secretKeyRef:
-      name: n8n-pgcluster-app
+      name: vikunja-stg-pgcluster-app
       key: dbname
-- name: DB_POSTGRESDB_USER
+- name: VIKUNJA_DATABASE_USER
   valueFrom:
     secretKeyRef:
-      name: n8n-pgcluster-app
+      name: vikunja-stg-pgcluster-app
       key: username
-- name: DB_POSTGRESDB_PASSWORD
+- name: VIKUNJA_DATABASE_PASSWORD
   valueFrom:
     secretKeyRef:
-      name: n8n-pgcluster-app
+      name: vikunja-stg-pgcluster-app
       key: password
 
 ingress:
@@ -44,7 +39,7 @@ ingress:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
   hosts:
-    - host: n8n.labgrid.net
+    - host: vikunja.labgrid.net
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -52,14 +47,14 @@ ingress:
 
 # Additional volumes on the output Deployment definition.
 volumes:
-- name: n8n-data
+- name: vikunja-data
   persistentVolumeClaim:
-    claimName: n8n-storage
+    claimName: vikunja-storage
 
 # Additional volumeMounts on the output Deployment definition.
 volumeMounts:
-- name: n8n-data
-  mountPath: "/home/node/.n8n"
+- name: vikunja-data
+  mountPath: "/home/node/.vikunja"
 
 nodeSelector: {}
 
@@ -70,24 +65,24 @@ affinity: {}
 
 persistentVolumeClaim:
   create: true
-  accessMode: ReadWriteOnce
+  accessMode: ReadWriteMany
   volumeMode: Filesystem
   size: 1Gi
-  storageClassName: "synology-iscsi-delete"
+  storageClassName: "synology-nfs-delete"
   existingPersistentVolumeClaim: ''
   annotations: {}
   # -- Additional labels for the persistent volume claim object.
   labels: {}
 
 databaseCredential:
-  secretName: n8n-pgcluster-app
+  secretName: vikunja-pgcluster-app
 
 initContainer:
   command:
     - sh
     - -c
     - |
-      until pg_isready -h "$N8N_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+      until pg_isready -h "$VIKUNJA_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
         echo Waiting for the database to be ready...; 
         sleep 5; 
       done;
@@ -110,7 +105,7 @@ pgcluster:
 
     storage:
       size: 8Gi
-      storageClass: "synology-iscsi-delete"
+      storageClass: "synology-nfs-delete"
 
     resources:
       requests:
@@ -134,14 +129,14 @@ pgcluster:
     enablePDB: true
 
     initdb:
-      database: "n8n"
+      database: "vikunja"
       owner: "labgridappuser"
 
 
   backups:
     enabled: true
     # Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path>
-    destinationPath: "https://labgrid.blob.core.windows.net/n8n-pg-backup"
+    destinationPath: "https://labgrid.blob.core.windows.net/vikunja-pg-backup"
     # -- One of `s3`, `azure` or `google`
     provider: azure
     azure:
@@ -200,7 +195,4 @@ pgcluster:
           key: labgrid-storage-account-name
       - secretKey: AZURE_STORAGE_SAS_TOKEN
         remoteRef:
-          key: n8n-pg-backup-sas-token
-      - secretKey: N8N_ENCRYPTION_KEY
-        remoteRef:
-          key: n8n-encryption-key
+          key: vikunja-pg-backup-sas-token
