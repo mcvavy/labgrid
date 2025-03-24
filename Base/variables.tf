@@ -87,7 +87,6 @@ variable "k8s_host" {
 variable "k8s_token" {
   type = string
   description = "Kubernetes token"
-  sensitive = true
 }
 
 variable "keycloak_issuer_url" {

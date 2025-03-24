@@ -69,12 +69,11 @@ provider "kubernetes" {
 
 data "external" "k8s_token" {
   program = ["sh", "-c", <<-EOT
-    echo '{
-      "token": "$(curl -s ${var.keycloak_issuer_url}/protocol/openid-connect/token \
-        -d client_id=${var.keycloak_client_id} \
-        -d client_secret=${var.keycloak_client_secret} \
-        -d grant_type=client_credentials | jq -r .access_token)"
-    }'
+    token=$(curl -s ${var.keycloak_issuer_url}/protocol/openid-connect/token \
+      -d client_id=${var.keycloak_client_id} \
+      -d client_secret=${var.keycloak_client_secret} \
+      -d grant_type=client_credentials | jq -r .access_token)
+    echo "{\"token\":\"$token\"}"
   EOT
   ]
 }
