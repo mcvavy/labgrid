@@ -23,6 +23,12 @@ jobs:
        uses: hashicorp/setup-terraform@v3
        with:
          terraform_version: ${{ env.TF_VERSION }}
+
+      # Create the variables.tfvars file from a GitHub secret
+     - name: Create Terraform vars file
+       run: echo "$VARIABLES_TFVARS" > variables.tfvars
+       env:
+        VARIABLES_TFVARS: ${{ secrets.VARIABLES_TFVARS }}
         
 
      - name: Set Terraform Environment Variables
@@ -57,11 +63,11 @@ jobs:
        env:
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_k8s_token: $OIDC_TOKEN
-       run: terraform plan
+       run: terraform plan -var-file=variables.tfvars
 
      - name: Terraform Apply
        working-directory: ./Base
        env:
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_k8s_token: $OIDC_TOKEN
-       run: terraform apply -auto-approve
+       run: terraform apply -var-file=variables.tfvars -auto-approve
