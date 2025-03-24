@@ -64,11 +64,6 @@ variable "argocdServerAddress" {
   default = "argocd.labgrid.net"
 }
 
-variable "argocdAuthToken" {
-  description = "ArgoCD auth token"
-  sensitive = true
-}
-
 variable "environment" {
   description = "Environment"
   validation {
