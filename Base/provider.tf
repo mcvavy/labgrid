@@ -50,6 +50,7 @@ provider "azurerm" {
   }
 }
 
+# Kubernetes provider using OIDC token
 provider "kubernetes" {
   # config_path = "~/.kube/config" # Update with your kubeconfig path
   host  = var.k8s_host

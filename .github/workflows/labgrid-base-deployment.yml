@@ -54,6 +54,10 @@ jobs:
             -d "grant_type=client_credentials" | jq -r '.access_token')
             echo "generated token is: $TOKEN"
             echo "OIDC_TOKEN=$TOKEN" >> $GITHUB_ENV
+    
+     - name: Verify Kubernetes Access
+       run: |
+         curl -k -v -H "Authorization: Bearer $OIDC_TOKEN" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
 
      - name: Terraform Init
        working-directory: ./Base
@@ -68,11 +72,18 @@ jobs:
        env:
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_k8s_token: $OIDC_TOKEN
-       run: terraform plan -var-file=variables.tfvars
+         KUBE_HOST: ${{ secrets.K8S_API_SERVER }}
+         KUBE_TOKEN: $OIDC_TOKEN
+       run: |
+          echo "Testing Kubernetes access..."
+          curl -k -H "Authorization: Bearer $KUBE_TOKEN" $KUBE_HOST/api/v1/namespaces/default
+          terraform plan -var-file=variables.tfvars
 
      - name: Terraform Apply
        working-directory: ./Base
        env:
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_k8s_token: $OIDC_TOKEN
+         KUBE_HOST: ${{ secrets.K8S_API_SERVER }}
+         KUBE_TOKEN: $OIDC_TOKEN
        run: terraform apply -var-file=variables.tfvars -auto-approve
