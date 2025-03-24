@@ -3,26 +3,6 @@ replicaCount: 2
 vikunjaEnvironment:
 - name: VIKUNJA_SERVICE_PUBLICURL
   value: https://vikunja.labgrid.net
-- name: VIKUNJA_MAILER_ENABLED
-  value: "true"
-- name: VIKUNJA_MAILER_FROM
-  value: "notifications@email.labgrid.net"
-- name: VIKUNJA_MAILER_HOST
-  value: "email-smtp.eu-north-1.amazonaws.com"
-- name: VIKUNJA_MAILER_PORT
-  value: "587"
-- name: VIKUNJA_MAILER_AUTHTYPE
-  value: "login"
-- name: VIKUNJA_MAILER_USERNAME
-  valueFrom:
-    secretKeyRef:
-      name: azure-credential
-      key: AWS_SMTP_USERNAME
-- name: VIKUNJA_MAILER_PASSWORD
-  valueFrom:
-    secretKeyRef:
-      name: azure-credential
-      key: AWS_SMTP_PASSWORD
 - name: VIKUNJA_DATABASE_TYPE
   value: "postgres"
 - name: DB_POSTGRESDB_HOST
@@ -50,6 +30,12 @@ vikunjaEnvironment:
     secretKeyRef:
       name: vikunja-pgcluster-app
       key: password
+# - name: VIKUNJA_SERVICE_JWTSECRET
+#   valueFrom:
+#     secretKeyRef:
+#       name: vikunja-pgcluster-app
+#       key: jwtsecret
+
 
 ingress:
   enabled: true
@@ -155,70 +141,6 @@ pgcluster:
 
   backups:
     enabled: true
-    # Azure: https://<storageAccount>.<serviceName>.core.windows.net/<containerName><path>
-    destinationPath: "https://labgrid.blob.core.windows.net/vikunja-pg-backup"
-    # -- One of `s3`, `azure` or `google`
-    provider: azure
-    azure:
-      path: "/"
-      connectionString: ""
-      storageAccount: ""
-      storageKey: ""
-      storageSasToken: ""
-      containerName: ""
-      serviceName: blob
-      inheritFromAzureAD: false
-    secret:
-      create: false
-      name: "azure-credential"
-
-    wal:
-      # -- WAL compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
-      compression: gzip
-      # -- Whether to instruct the storage provider to encrypt WAL files. One of `` (use the storage container default), `AES256` or `aws:kms`.
-      encryption: AES256
-      # -- Number of WAL files to be archived or restored in parallel.
-      maxParallel: 1
-    data:
-      # -- Data compression method. One of `` (for no compression), `gzip`, `bzip2` or `snappy`.
-      compression: gzip
-      # -- Whether to instruct the storage provider to encrypt data files. One of `` (use the storage container default), `AES256` or `aws:kms`.
-      encryption: AES256
-      # -- Number of data files to be archived or restored in parallel.
-      jobs: 2
-
-    scheduledBackups:
-      -
-        # -- Scheduled backup name
-        name: scheduled-backup
-        # -- Schedule in cron format
-        schedule: "0 0 0 * * *"
-        # schedule: "0 0 0 * * 1,4,7"
-        # -- Backup owner reference
-        backupOwnerReference: self
-        # -- Backup method, can be `barmanObjectStore` (default) or `volumeSnapshot`
-        method: barmanObjectStore
-
-    # -- Retention policy for backups
-    retentionPolicy: "14d"
 
   externalSecretBackupCredentials:
     enabled: true
-    name: azure-credential
-    refreshInterval: "1h"
-    secretStoreRef:
-      name: azure-kv-cluster-store
-      kind: ClusterSecretStore
-    data:
-      - secretKey: AZURE_STORAGE_ACCOUNT
-        remoteRef:
-          key: labgrid-storage-account-name
-      - secretKey: AZURE_STORAGE_SAS_TOKEN
-        remoteRef:
-          key: vikunja-pg-backup-sas-token
-      - secretKey: AWS_SMTP_USERNAME
-        remoteRef:
-          key: aws-smtp-username
-      - secretKey: AWS_SMTP_PASSWORD
-        remoteRef:
-          key: aws-smtp-password
