@@ -77,6 +77,7 @@ variable "environment" {
   }
 }
 
+# Kubernetes variables
 variable "k8s_host" {
   type = string
 }
