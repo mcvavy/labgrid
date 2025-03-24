@@ -57,11 +57,11 @@ jobs:
        env:
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_k8s_token: $OIDC_TOKEN
-       run: terraform plan -var="argocdAdminPassword=${{ secrets.ARGOCD_ADMIN_PASSWORD }}"
+       run: terraform plan
 
      - name: Terraform Apply
        working-directory: ./Base
        env:
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_k8s_token: $OIDC_TOKEN
-       run: terraform apply -var="argocdAdminPassword=${{ secrets.ARGOCD_ADMIN_PASSWORD }}" -auto-approve
+       run: terraform apply -auto-approve

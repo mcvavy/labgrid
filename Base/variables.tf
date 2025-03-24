@@ -69,12 +69,18 @@ variable "argocdAuthToken" {
   sensitive = true
 }
 
-
-
 variable "environment" {
   description = "Environment"
   validation {
     condition = contains(["stg", "prod"], var.environment)
     error_message = "Environment must be set"
   }
+}
+
+variable "k8s_host" {
+  type = string
+}
+
+variable "k8s_token" {
+  type = string
 }
