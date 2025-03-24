@@ -31,6 +31,7 @@ jobs:
        env:
         VARIABLES_TFVARS: ${{ secrets.VARIABLES_TFVARS }}
 
+     # Show the variables file
      - name: Debug - Show variables file
        working-directory: ./Base
        run: ls -la
