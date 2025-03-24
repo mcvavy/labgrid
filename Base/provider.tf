@@ -31,6 +31,11 @@ terraform {
       source = "gavinbunney/kubectl"
       version = "1.19.0"
     }
+
+    external = {
+      source  = "hashicorp/external"
+      version = "2.3.4"
+    }
   }
 
   backend "azurerm" {
@@ -51,24 +56,45 @@ provider "azurerm" {
 }
 
 # Kubernetes provider using OIDC token
+# provider "kubernetes" {
+#   # config_path = "~/.kube/config" # Update with your kubeconfig path
+#   host  = "https://k8s-server.labgrid.net"
+#   token = var.k8s_token
+# }
+
 provider "kubernetes" {
-  # config_path = "~/.kube/config" # Update with your kubeconfig path
-  host  = "https://k8s-server.labgrid.net"
-  token = var.k8s_token
+  host  = var.k8s_host
+  token = data.external.k8s_token.result.token
+}
+
+data "external" "k8s_token" {
+  program = ["sh", "-c", <<-EOT
+    echo '{
+      "token": "$(curl -s ${var.keycloak_issuer_url}/protocol/openid-connect/token \
+        -d client_id=${var.keycloak_client_id} \
+        -d client_secret=${var.keycloak_client_secret} \
+        -d grant_type=client_credentials | jq -r .access_token)"
+    }'
+  EOT
+  ]
 }
 
 # Helm provider using OIDC token
 provider "helm" {
   kubernetes {
     # config_path = "~/.kube/config" # Update with your kubeconfig path
-    host  = "https://k8s-server.labgrid.net"
-    token = var.k8s_token
+  host  = var.k8s_host
+  token = data.external.k8s_token.result.token
   }
 }
 
 # kubectl provider using OIDC token
 provider "kubectl" {
     # config_path = "~/.kube/config" # Update with your kubeconfig path
-    host  = "https://k8s-server.labgrid.net"
-    token = var.k8s_token
+  host  = var.k8s_host
+  token = data.external.k8s_token.result.token
+}
+
+provider "external" {
+  # Configuration options
 }

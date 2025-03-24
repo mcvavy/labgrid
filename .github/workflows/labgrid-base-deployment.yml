@@ -71,6 +71,9 @@ jobs:
        working-directory: ./Base
        env:
          TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
+         TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+         TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
        run: |
           echo "Testing Kubernetes access..."
           curl -k -H "Authorization: Bearer $TF_VAR_k8s_token" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
@@ -80,4 +83,7 @@ jobs:
        working-directory: ./Base
        env:
          TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
+         TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+         TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
        run: terraform apply -var-file=variables.tfvars -auto-approve
