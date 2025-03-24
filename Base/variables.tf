@@ -81,6 +81,7 @@ variable "environment" {
 variable "k8s_host" {
   type = string
   description = "Kubernetes host"
+  default = "https://k8s-server.labgrid.net"
 }
 
 variable "k8s_token" {
