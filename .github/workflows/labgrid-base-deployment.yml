@@ -70,20 +70,14 @@ jobs:
      - name: Terraform Plan
        working-directory: ./Base
        env:
-         TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_k8s_token: $OIDC_TOKEN
-         KUBE_HOST: ${{ secrets.K8S_API_SERVER }}
-         KUBE_TOKEN: $OIDC_TOKEN
        run: |
           echo "Testing Kubernetes access..."
-          curl -k -H "Authorization: Bearer $KUBE_TOKEN" $KUBE_HOST/api/v1/namespaces/default
+          curl -k -H "Authorization: Bearer $TF_VAR_k8s_token" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
           terraform plan -var-file=variables.tfvars
 
      - name: Terraform Apply
        working-directory: ./Base
        env:
-         TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_k8s_token: $OIDC_TOKEN
-         KUBE_HOST: ${{ secrets.K8S_API_SERVER }}
-         KUBE_TOKEN: $OIDC_TOKEN
        run: terraform apply -var-file=variables.tfvars -auto-approve

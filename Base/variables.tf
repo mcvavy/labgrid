@@ -78,10 +78,12 @@ variable "environment" {
 }
 
 # Kubernetes variables
-variable "k8s_host" {
-  type = string
-}
+# variable "k8s_host" {
+#   type = string
+# }
 
 variable "k8s_token" {
   type = string
+  description = "Kubernetes token"
+  sensitive = true
 }
