@@ -146,7 +146,6 @@ affinity: {}
 
 persistentVolumeClaim:
   create: true
-  mountPath: /app/vikunja/files
   accessMode: ReadWriteMany
   volumeMode: Filesystem
   size: 1Gi

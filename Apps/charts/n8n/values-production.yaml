@@ -1,11 +1,11 @@
-replicaCount: 1
+replicaCount: 2
 
 n8nEnvironment:
-# - name: N8N_ENCRYPTION_KEY
-#   valueFrom:
-#     secretKeyRef:
-#       name: "azure-credential"
-#       key: N8N_ENCRYPTION_KEY
+- name: N8N_ENCRYPTION_KEY
+  valueFrom:
+    secretKeyRef:
+      name: "azure-credential"
+      key: N8N_ENCRYPTION_KEY
 - name: DB_TYPE
   value: "postgresdb"
 - name: N8N_PORT
@@ -73,7 +73,7 @@ persistentVolumeClaim:
   accessMode: ReadWriteOnce
   volumeMode: Filesystem
   size: 1Gi
-  storageClassName: "synology-iscsi-delete"
+  storageClassName: "synology-nfs-delete"
   existingPersistentVolumeClaim: ''
   annotations: {}
   # -- Additional labels for the persistent volume claim object.
