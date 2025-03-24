@@ -216,3 +216,9 @@ pgcluster:
       - secretKey: AZURE_STORAGE_SAS_TOKEN
         remoteRef:
           key: vikunja-pg-backup-sas-token
+      - secretKey: AWS_SMTP_USERNAME
+        remoteRef:
+          key: aws-smtp-username
+      - secretKey: AWS_SMTP_PASSWORD
+        remoteRef:
+          key: aws-smtp-password
