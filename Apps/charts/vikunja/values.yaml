@@ -186,7 +186,7 @@ pgcluster:
 
     storage:
       size: 8Gi
-      storageClass: "synology-nfs-delete"
+      storageClass: "synology-iscsi-delete"
 
     resources:
       requests:
@@ -277,3 +277,6 @@ pgcluster:
       - secretKey: AZURE_STORAGE_SAS_TOKEN
         remoteRef:
           key: vikunja-pg-backup-sas-token
+      - secretKey: VIKUNJA_SERVICE_JWTSECRET
+        remoteRef:
+          key: vikunja-service-jwtsecret
