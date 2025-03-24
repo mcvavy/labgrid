@@ -252,7 +252,7 @@ resource "kubernetes_storage_class_v1" "synology-nfs-delete" {
     dsm = var.synologyClientIp
     location = "/volume1"
     protocol = "nfs"
-    mountPermissions = "0755"
+    mountPermissions = "0775"
   }
   mount_options = ["nfsvers=4.1"]
 }
