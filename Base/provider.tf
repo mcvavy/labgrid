@@ -81,15 +81,15 @@ data "external" "k8s_token" {
 # Helm provider using OIDC token
 provider "helm" {
   kubernetes {
-    # config_path = "~/.kube/config" # Update with your kubeconfig path
-  host  = var.k8s_host
-  token = data.external.k8s_token.result.token
+    host  = var.k8s_host
+    token = data.external.k8s_token.result.token
   }
 }
 
 # kubectl provider using OIDC token
 provider "kubectl" {
     # config_path = "~/.kube/config" # Update with your kubeconfig path
+  load_config_file = "false"
   host  = var.k8s_host
   token = data.external.k8s_token.result.token
 }
