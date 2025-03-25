@@ -122,15 +122,32 @@ persistentVolumeClaim:
 databaseCredential:
   secretName: n8n-stg-pgcluster-app
 
-initContainer:
-  command:
-    - sh
-    - -c
-    - |
-      until pg_isready -h "$PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
-        echo Waiting for the database to be ready...; 
-        sleep 5; 
-      done;
+initContainers:
+  - name: wait-for-postgres-cluster
+    image: postgres:latest
+    command:
+      - sh
+      - -c
+      - |
+        until pg_isready -h "$PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+          echo Waiting for the database to be ready...; 
+          sleep 5; 
+        done;
+    securityContext:
+      runAsUser: 0
+      runAsGroup: 0
+  - name: fix-permissions
+    image: busybox
+    command: 
+      - sh
+      - -c
+      - chown -R 1000:1000 /home/node/.n8n && chmod -R 0775 /home/node/.n8n
+    volumeMounts:
+      - name: n8n-data
+        mountPath: /home/node/.n8n
+    securityContext:
+      runAsUser: 0
+      runAsGroup: 0
 
 pgcluster:
   enabled: true
