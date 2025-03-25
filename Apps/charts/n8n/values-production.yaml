@@ -70,7 +70,7 @@ affinity: {}
 
 persistentVolumeClaim:
   create: true
-  accessMode: ReadWriteOnce
+  accessMode: ReadWriteMany
   volumeMode: Filesystem
   size: 1Gi
   storageClassName: "synology-nfs-delete"
