@@ -89,7 +89,7 @@ initContainers:
       - sh
       - -c
       - |
-        until pg_isready -h "$PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
+        until pg_isready -h "$N8N_PGCLUSTER_RW_SERVICE_HOST" -p 5432; do 
           echo Waiting for the database to be ready...; 
           sleep 5; 
         done;
@@ -108,7 +108,6 @@ initContainers:
     securityContext:
       runAsUser: 0
       runAsGroup: 0
-
 
 pgcluster:
   enabled: true
