@@ -83,6 +83,18 @@ databaseCredential:
   secretName: n8n-pgcluster-app
 
 initContainers:
+  - name: fix-permissions
+    image: busybox
+    command: 
+      - sh
+      - -c
+      - chown -R 1000:1000 /home/node/.n8n && chmod -R 0775 /home/node/.n8n
+    volumeMounts:
+      - name: n8n-data
+        mountPath: /home/node/.n8n
+    securityContext:
+      runAsUser: 0
+      runAsGroup: 0
   - name: wait-for-postgres-cluster
     image: postgres:latest
     command:
@@ -93,18 +105,6 @@ initContainers:
           echo Waiting for the database to be ready...; 
           sleep 5; 
         done;
-    securityContext:
-      runAsUser: 0
-      runAsGroup: 0
-  - name: fix-permissions
-    image: busybox
-    command: 
-      - sh
-      - -c
-      - chown -R 1000:1000 /home/node/.n8n && chmod -R 0775 /home/node/.n8n
-    volumeMounts:
-      - name: n8n-data
-        mountPath: /home/node/.n8n
     securityContext:
       runAsUser: 0
       runAsGroup: 0
