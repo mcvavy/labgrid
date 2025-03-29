@@ -15,9 +15,9 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Infrastructure as Code**: Terraform for Azure infrastructure management
 - **Learning Environment**: Dedicated kubeadm cluster for CKA exam preparation
 
-## ��️ Architecture
+## Architecture
 
-### 📊 Labgrid Network Diagram
+### Labgrid Network Diagram
 
 ![Labgrid Network Diagram](Documentation/images/labgrid_network.png)
 
