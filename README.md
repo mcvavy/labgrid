@@ -144,12 +144,6 @@ Made with ❤️ for the Kubernetes community
 ### Infrastructure as Code
 
 - **Terraform as Primary IaC Tool**:
-  - Azure resource management
-  - Kubernetes cluster provisioning
-  - Database cluster configuration
-  - Storage and networking setup
-  - Security and access management
-  - Monitoring stack deployment
 - **State Management**: Azure Storage for Terraform state
 - **Module-based Architecture**: Reusable Terraform modules for consistent deployments
 - **Version Control**: All infrastructure code versioned in Git
