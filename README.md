@@ -15,7 +15,6 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Infrastructure as Code**: Terraform for Azure infrastructure management
 - **Learning Environment**: Dedicated kubeadm cluster for practicing Certified Kubernetes Administrator(CKA) & Certified Kubernetes Security (CKS) exam curriculum
 
-## Architecture
 
 ### Labgrid Network Diagram
 
@@ -24,7 +23,7 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 ### Core Components
 
 - **Production Clusters**: 
-  - 10-node High Availability K3s cluster
+  - 10-node High Availability K3S cluster
   - kubeadm-based cluster on Proxmox for keeping up to date with Kubernetes certification exam curriculum
 - **Database Layer**: PostgreSQL clusters managed by CloudNativePG
 - **Storage**: Synology NAS integration via CSI driver
@@ -38,9 +37,7 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **n8n**: Workflow automation platform
 - **Vikunja**: Task management and to-do list application
 - **Linkding**: Bookmark manager for organizing web links
-- **IAM**: Identity and Access Management system powered by Keycloak
-- **Keycloak**: Open-source identity and access management solution, providing OIDC authentication for all cluster access
-- **PostgreSQL**: Database clusters
+- **IAM**: Identity and access management solution, providing OIDC authentication for cluster  and application accesses powered by Keycloak, PostgreSQL & CloudNativePG
 - **Monitoring Stack**: Prometheus, Grafana
 - **Certificate Management**: cert-manager
 - **Secret Management**: External Secrets Operator
@@ -90,19 +87,6 @@ Everything needed to run my clusters & deploy my applications
 - terraform
 - helm
 
-
-## 📁 Project Structure
-
-```
-labgrid/
-├── Apps/                    # Application deployments
-│   ├── charts/             # Helm charts
-│   └── n8n/                # n8n specific configurations
-├── Base/                   # Base infrastructure
-│   ├── provider.tf         # Provider configurations
-│   └── main.tf            # Main infrastructure code
-└── README.md              # This file
-```
 
 ## 🔒 Security
 
