@@ -38,6 +38,13 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Vikunja**: Task management and to-do list application
 - **Linkding**: Bookmark manager for organizing web links
 - **IAM**: Identity and access management solution, providing OIDC authentication for cluster  and application accesses powered by Keycloak, PostgreSQL & CloudNativePG
+- **Trilium Next**: Hierarchical note-taking application with advanced features
+- **Home Assistant**: Open-source home automation platform for smart home integration
+- **Pi-hole**: Network-wide DNS sinkhole and ad blocker
+- **Nginx Proxy Manager**: Reverse proxy and SSL certificate management solution
+- **Bitwarden**: Secure password manager and digital vault
+- **ArgoCD**: GitOps continuous delivery tool for Kubernetes
+- **Portainer**: Container management and orchestration platform
 - **Monitoring Stack**: Prometheus, Grafana
 - **Certificate Management**: cert-manager
 - **Secret Management**: External Secrets Operator
