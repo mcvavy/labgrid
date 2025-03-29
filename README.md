@@ -13,7 +13,7 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Monitoring & Observability**: Prometheus and Grafana for metrics and visualization
 - **Automated Backups**: Azure Blob Storage integration for database backups
 - **Infrastructure as Code**: Terraform for Azure infrastructure management
-- **Learning Environment**: Dedicated kubeadm cluster for CKA exam preparation
+- **Learning Environment**: Dedicated kubeadm cluster for practicing Certified Kubernetes Administrator(CKA) & Certified Kubernetes Security (CKS) exam curriculum
 
 ## Architecture
 
@@ -25,10 +25,10 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 
 - **Production Clusters**: 
   - 10-node High Availability K3s cluster
-  - kubeadm-based cluster on Proxmox for CKA practice
+  - kubeadm-based cluster on Proxmox for keeping up to date with Kubernetes certification exam curriculum
 - **Database Layer**: PostgreSQL clusters managed by CloudNativePG
 - **Storage**: Synology NAS integration via CSI driver
-- **Networking**: Azure networking with proper segmentation
+- **Networking**: Kube-vip, nginx, wireguard in addition to Kubernetes networking.
 - **Security**: Azure Key Vault for secrets management
 - **Monitoring**: Prometheus & Grafana stack
 - **CI/CD**: GitHub Actions for automation
@@ -38,7 +38,7 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **n8n**: Workflow automation platform
 - **Vikunja**: Task management and to-do list application
 - **Linkding**: Bookmark manager for organizing web links
-- **IAM**: Identity and Access Management system
+- **IAM**: Identity and Access Management system powered by Keycloak
 - **Keycloak**: Open-source identity and access management solution, providing OIDC authentication for all cluster access
 - **PostgreSQL**: Database clusters
 - **Monitoring Stack**: Prometheus, Grafana
@@ -62,12 +62,6 @@ Everything needed to run my clusters & deploy my applications
 | ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white) | Primary Infrastructure as Code tool for managing all infrastructure components |
 | ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) | Version control and CI/CD platform for GitOps workflows |
 
-### Networking
-
-- VLAN-based network segmentation
-- Azure networking integration
-- Load balancer services for external access
-- Internal DNS resolution
 
 ### Storage
 
