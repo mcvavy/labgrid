@@ -32,6 +32,10 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 ### Applications
 
 - **n8n**: Workflow automation platform
+- **Vikunja**: Task management and to-do list application
+- **Linkding**: Bookmark manager for organizing web links
+- **IAM**: Identity and Access Management system
+- **Keycloak**: Open-source identity and access management solution, providing OIDC authentication for all cluster access
 - **PostgreSQL**: Database clusters
 - **Monitoring Stack**: Prometheus, Grafana
 - **Certificate Management**: cert-manager
@@ -71,10 +75,12 @@ Everything needed to run my clusters & deploy my applications
 ### Security
 
 - Azure Key Vault for secrets management
-- OIDC authentication for cluster access
+- OIDC authentication via Keycloak for all Kubernetes cluster access
 - Network isolation and segmentation
 - Automated certificate management
-- Regular security updates
+- Regular security updates via Renovate
+- Centralized authentication for all cluster interactions
+- Token-based access control for API server communication
 
 ## 🚀 Getting Started
 
@@ -102,11 +108,13 @@ labgrid/
 
 ## 🔒 Security
 
-- OIDC authentication for Kubernetes access
+- OIDC authentication via Keycloak for all Kubernetes cluster access
 - Azure Key Vault for secrets management
 - Network segmentation and isolation
 - Automated certificate management
 - Regular security updates via Renovate
+- Centralized authentication for all cluster interactions
+- Token-based access control for API server communication
 
 ## 🔄 Automation
 
