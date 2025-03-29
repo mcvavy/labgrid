@@ -18,7 +18,7 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 ## 🏗️ Architecture
 
 ### Network Diagram
-![Labgrid Network Diagram](Documentation\labgrid_network.png "Langrid Network")
+![Labgrid Network Diagram](Documentation\images\labgrid_network.png "Langrid Network")
 
 ### Core Components
 
