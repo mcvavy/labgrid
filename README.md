@@ -15,6 +15,15 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Infrastructure as Code**: Terraform for Azure infrastructure management
 - **Learning Environment**: Dedicated kubeadm cluster for practicing Certified Kubernetes Administrator(CKA) & Certified Kubernetes Security (CKS) exam curriculum
 
+### Hardware
+
+- HP ELITEDESK 800 G2 Intel Core i7 6th Gen/16GB RAM/500GB SSD x 5
+- HP ELITEDESK 800 G2 Intel Core i7 6th Gen/16GB RAM/256GB SSD x 4
+- GL.iNet GL-MT6000(Flint 2) WiFi 6 Router
+- TP-Link 24-Port Gigabit Ethernet Switch (TL-SG1024D)
+- Synology DS1522+
+- Raspberry Pi 4 8GB RAM + 240GB NVMe M.2 SSD + Argon ONE casing
+
 
 ### Labgrid Network Diagram
 
@@ -24,6 +33,8 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 
 - **Production Clusters**: 
   - 10-node High Availability K3S cluster
+  - 3 X HP ELITEDESK 800 G2 Intel Core i7 - control plane nodes
+  - 6 X HP ELITEDESK 800 G2 Intel Core i7 - worker nodes
   - kubeadm-based cluster on Proxmox for keeping up to date with Kubernetes certification exam curriculum
 - **Database Layer**: PostgreSQL clusters managed by CloudNativePG
 - **Storage**: Synology NAS integration via CSI driver
