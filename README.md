@@ -12,7 +12,7 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Automated Certificate Management**: Let's Encrypt integration for SSL/TLS
 - **Monitoring & Observability**: Prometheus and Grafana for metrics and visualization
 - **Automated Backups**: Azure Blob Storage integration for database backups
-- **Infrastructure as Code**: Terraform for Azure infrastructure management
+- **Infrastructure as Code**: Terraform for general infrastructure management
 - **Learning Environment**: Dedicated kubeadm cluster for practicing Certified Kubernetes Administrator(CKA) & Certified Kubernetes Security (CKS) exam curriculum
 
 ### Hardware
