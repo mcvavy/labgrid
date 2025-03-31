@@ -49,6 +49,7 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Vikunja**: Task management and to-do list application
 - **Linkding**: Bookmark manager for organizing web links
 - **IAM**: Identity and access management solution, providing OIDC authentication for cluster  and application accesses powered by Keycloak, PostgreSQL & CloudNativePG
+- **pgAdmin 4**: A web based administration tool for the PostgreSQL database 
 - **Trilium Next**: Hierarchical note-taking application with advanced features
 - **Home Assistant**: Open-source home automation platform for smart home integration
 - **Pi-hole**: Network-wide DNS sinkhole and ad blocker
@@ -56,7 +57,8 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Bitwarden**: Secure password manager and digital vault
 - **ArgoCD**: GitOps continuous delivery tool for Kubernetes
 - **Portainer**: Container management and orchestration platform
-- **Monitoring Stack**: Prometheus, Grafana
+- **Prometheus**: Time-series database and monitoring system for collecting and querying kubernetes and application metrics
+- **Grafana**: Analytics and visualization platform for creating custom dashboards and alerts
 - **Certificate Management**: cert-manager
 - **Secret Management**: External Secrets Operator
 - **Learning Tools**: Various Kubernetes components for CKA practice

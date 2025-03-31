@@ -1,0 +1,235 @@
+# yaml-language-server: $schema=values.schema.json
+# Default values for prometheus.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+rbac:
+  create: true
+
+podSecurityPolicy:
+  enabled: false
+
+imagePullSecrets: []
+# - name: "image-pull-secret"
+
+## Define serviceAccount names for components. Defaults to component's fully qualified name.
+##
+serviceAccounts:
+  server:
+    create: true
+    name: ""
+    annotations: {}
+
+    ## Opt out of automounting Kubernetes API credentials.
+    ## It will be overriden by server.automountServiceAccountToken value, if set.
+    # automountServiceAccountToken: false
+
+## Additional labels to attach to all resources
+commonMetaLabels: {}
+
+## Monitors ConfigMap changes and POSTs to a URL
+## Ref: https://github.com/prometheus-operator/prometheus-operator/tree/main/cmd/prometheus-config-reloader
+##
+configmapReload:
+  ## URL for configmap-reload to use for reloads
+  ##
+  reloadUrl: ""
+
+  ## env sets environment variables to pass to the container. Can be set as name/value pairs,
+  ## read from secrets or configmaps.
+  env: []
+    # - name: SOMEVAR
+    #   value: somevalue
+    # - name: PASSWORD
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: mysecret
+    #       key: password
+    #       optional: false
+
+  prometheus:
+    ## If false, the configmap-reload container will not be deployed
+    ##
+    enabled: true
+
+    ## configmap-reload container name
+    ##
+    name: configmap-reload
+
+    ## configmap-reload container image
+    ##
+    image:
+      repository: quay.io/prometheus-operator/prometheus-config-reloader
+      tag: v0.81.0
+      # When digest is set to a non-empty value, images will be pulled by digest (regardless of tag value).
+      digest: ""
+      pullPolicy: IfNotPresent
+
+    ## config-reloader's container port and port name for probes and metrics
+    containerPort: 8080
+    containerPortName: metrics
+
+    ## Additional configmap-reload container arguments
+    ## Set to null for argumentless flags
+    ##
+    extraArgs: {}
+
+    ## Additional configmap-reload volume directories
+    ##
+    extraVolumeDirs: []
+
+    ## Additional configmap-reload volume mounts
+    ##
+    extraVolumeMounts: []
+
+    ## Additional configmap-reload mounts
+    ##
+    extraConfigmapMounts: []
+      # - name: prometheus-alerts
+      #   mountPath: /etc/alerts.d
+      #   subPath: ""
+      #   configMap: prometheus-alerts
+      #   readOnly: true
+
+    ## Security context to be added to configmap-reload container
+    containerSecurityContext: {}
+
+    ## Settings for Prometheus reloader's readiness, liveness and startup probes
+    ## Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+    ##
+
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: metrics
+        scheme: HTTP
+      periodSeconds: 10
+      initialDelaySeconds: 2
+
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: metrics
+        scheme: HTTP
+      periodSeconds: 10
+
+    startupProbe:
+      enabled: false
+      httpGet:
+        path: /healthz
+        port: metrics
+        scheme: HTTP
+      periodSeconds: 10
+
+    ## configmap-reload resource requests and limits
+    ## Ref: http://kubernetes.io/docs/user-guide/compute-resources/
+    ##
+    resources: {}
+
+server:
+  ## Prometheus server container name
+  ##
+  name: server
+
+  ingress:
+    ## If true, Prometheus server Ingress will be created
+    ##
+    enabled: true
+
+    # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
+    # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
+    # ingressClassName: nginx
+
+    ## Prometheus server Ingress annotations
+    ##
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-production"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    ## Prometheus server Ingress additional labels
+    ##
+    extraLabels: {}
+
+    ## Redirect ingress to an additional defined port on the service
+    # servicePort: 8081
+
+    ## Prometheus server Ingress hostnames with optional path (passed through tpl)
+    ## Must be provided if Ingress is enabled
+    ##
+    hosts:
+      - prometheus.labgrid.net
+
+    path: /
+
+    # pathType is only for k8s >= 1.18
+    pathType: Prefix
+
+    ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services. (passed through tpl)
+    extraPaths: []
+    # - path: /*
+    #   backend:
+    #     serviceName: ssl-redirect
+    #     servicePort: use-annotation
+
+    ## Prometheus server Ingress TLS configuration (hosts passed through tpl)
+    ## Secrets must be manually created in the namespace
+    ##
+    tls: []
+    #   - secretName: prometheus-server-tls
+    #     hosts:
+    #       - prometheus.domain.com
+
+
+  persistentVolume:
+    ## If true, Prometheus server will create/use a Persistent Volume Claim
+    ## If false, use emptyDir
+    ##
+    enabled: true
+
+    ## If set it will override the name of the created persistent volume claim
+    ## generated by the stateful set.
+    ##
+    statefulSetNameOverride: ""
+
+    ## Prometheus server data Persistent Volume access modes
+    ## Must match those of existing PV or dynamic provisioner
+    ## Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    ##
+    accessModes:
+      - ReadWriteOnce
+
+    ## Prometheus server data Persistent Volume labels
+    ##
+    labels: {}
+
+    ## Prometheus server data Persistent Volume annotations
+    ##
+    annotations: {}
+
+    ## Prometheus server data Persistent Volume existing claim name
+    ## Requires server.persistentVolume.enabled: true
+    ## If defined, PVC must be created manually before volume will be bound
+    existingClaim: ""
+
+    ## Prometheus server data Persistent Volume mount root path
+    ##
+    mountPath: /data
+
+    ## Prometheus server data Persistent Volume size
+    ##
+    size: 10Gi
+
+    ## Prometheus server data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    storageClass: "synology-iscsi-delete"
+
+    ## Subdirectory of Prometheus server data Persistent Volume to mount
+    ## Useful if the volume's root directory is not empty
+    ##
+    subPath: ""
