@@ -66,4 +66,11 @@ locals {
     chart_version = "1.35.0"
     repository    = "https://helm.runix.net"
   }
+
+  prometheusSettings = {
+    name          = "prometheus"
+    namespace     = "prometheus-system"
+    chart_version = "27.7.1"
+    repository    = "https://prometheus-community.github.io/helm-charts"
+  }
 }

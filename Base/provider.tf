@@ -56,12 +56,6 @@ provider "azurerm" {
 }
 
 # Kubernetes provider using OIDC token
-# provider "kubernetes" {
-#   # config_path = "~/.kube/config" # Update with your kubeconfig path
-#   host  = "https://k8s-server.labgrid.net"
-#   token = var.k8s_token
-# }
-
 provider "kubernetes" {
   # config_path = "~/.kube/config" # Update with your kubeconfig path
   host  = var.k8s_host

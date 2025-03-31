@@ -363,7 +363,6 @@ resource "kubernetes_manifest" "pg-admin-password" {
   }
 }
 
-
 resource "helm_release" "pgadmin" {
   depends_on = [ kubernetes_manifest.pg-admin-password ]
 
@@ -375,5 +374,20 @@ resource "helm_release" "pgadmin" {
 
   values = [ 
     file("${path.module}/values/pgadmin/values.yaml") 
+    ]
+}
+
+resource "helm_release" "prometheus" {
+  depends_on = [ kubernetes_manifest.metallb_l2advertisement ]
+
+  name             = local.prometheusSettings.name
+  repository       = local.prometheusSettings.repository
+  chart            = local.prometheusSettings.name
+  namespace        = local.prometheusSettings.namespace
+  version          = local.prometheusSettings.chart_version
+  create_namespace = true
+
+  values = [ 
+    file("${path.module}/values/prometheus/values.yaml") 
     ]
 }
