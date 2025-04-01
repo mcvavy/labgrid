@@ -68,9 +68,9 @@ locals {
   }
 
   prometheusSettings = {
-    name          = "prometheus"
+    name          = "kube-prometheus-stack"
     namespace     = "prometheus-system"
-    chart_version = "27.7.1"
+    chart_version = "70.3.0"
     repository    = "https://prometheus-community.github.io/helm-charts"
   }
 }
