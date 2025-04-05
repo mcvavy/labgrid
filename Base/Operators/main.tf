@@ -80,16 +80,16 @@ data "http" "snapshot_crd_volumesnapshots" {
 # Step 2: Apply the CRDs
 ################################################################################
 
-resource "kubernetes_manifest" "snapshot_crd_volumesnapshotclasses" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshotclasses.response_body)
+resource "kubectl_manifest" "snapshot_crd_volumesnapshotclasses" {
+  yaml_body = data.http.snapshot_crd_volumesnapshotclasses.response_body
 }
 
-resource "kubernetes_manifest" "snapshot_crd_volumesnapshotcontents" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshotcontents.response_body)
+resource "kubectl_manifest" "snapshot_crd_volumesnapshotcontents" {
+  yaml_body = data.http.snapshot_crd_volumesnapshotcontents.response_body
 }
 
-resource "kubernetes_manifest" "snapshot_crd_volumesnapshots" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshots.response_body)
+resource "kubectl_manifest" "snapshot_crd_volumesnapshots" {
+  yaml_body = data.http.snapshot_crd_volumesnapshots.response_body
 }
 
 ################################################################################
@@ -106,8 +106,8 @@ data "http" "snapshot_controller_setup" {
   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
 }
 
-resource "kubernetes_manifest" "snapshot_controller_rbac" {
-  manifest = yamldecode(data.http.snapshot_controller_rbac.response_body)
+resource "kubectl_manifest" "snapshot_controller_rbac" {
+  yaml_body = data.http.snapshot_controller_rbac.response_body
   depends_on = [
     kubernetes_manifest.snapshot_crd_volumesnapshotclasses,
     kubernetes_manifest.snapshot_crd_volumesnapshotcontents,
@@ -115,8 +115,8 @@ resource "kubernetes_manifest" "snapshot_controller_rbac" {
   ]
 }
 
-resource "kubernetes_manifest" "snapshot_controller_setup" {
-  manifest = yamldecode(data.http.snapshot_controller_setup.response_body)
+resource "kubectl_manifest" "snapshot_controller_setup" {
+  yaml_body = data.http.snapshot_controller_setup.response_body
   depends_on = [
     kubernetes_manifest.snapshot_controller_rbac
   ]
