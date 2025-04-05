@@ -1,5 +1,3 @@
-
-
 resource "helm_release" "metallb" {
   name             = local.metallbSettings.name
   namespace        = local.metallbSettings.namespace
@@ -63,33 +61,33 @@ resource "helm_release" "cloudnative-pg-operator" {
 
 data "http" "volume_snapshot_classes" {
   method = "GET"
-  url = "https://github.com/kubernetes-csi/external-snapshotter/blob/v8.2.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
 }
 
 data "http" "volume_snapshot_contents" {
   method = "GET"
-  url = "https://github.com/kubernetes-csi/external-snapshotter/blob/v8.2.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
 }
 
 data "http" "volume_snapshots" {
   method = "GET"
-  url = "https://github.com/kubernetes-csi/external-snapshotter/blob/v8.2.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
 }
 
 
 data "http" "volume_group_snapshot_classes" {
   method = "GET"
-  url = "https://github.com/kubernetes-csi/external-snapshotter/blob/v8.2.1/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotclasses.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotclasses.yaml"
 }
 
 data "http" "volume_group_snapshot_contents" {
   method = "GET"
-  url = "https://github.com/kubernetes-csi/external-snapshotter/blob/v8.2.1/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotcontents.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotcontents.yaml"
 }
 
 data "http" "volume_group_snapshots" {
   method = "GET"
-  url = "https://github.com/kubernetes-csi/external-snapshotter/blob/v8.2.1/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshots.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshots.yaml"
 }
 
 ################################################################################
@@ -128,12 +126,12 @@ resource "kubectl_manifest" "volume_group_snapshots" {
 
 data "http" "snapshot_controller_rbac" {
   method = "GET"
-  url = "https://github.com/kubernetes-csi/external-snapshotter/blob/v8.2.1/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
 }
 
 data "http" "snapshot_controller_setup" {
   method = "GET"
-  url = "https://github.com/kubernetes-csi/external-snapshotter/blob/v8.2.1/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
 }
 
 resource "kubectl_manifest" "snapshot_controller_rbac" {
