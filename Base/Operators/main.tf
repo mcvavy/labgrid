@@ -21,11 +21,6 @@ resource "helm_release" "cert_manager" {
   chart      = local.certManagerSettings.name
   version   = local.certManagerSettings.chart_version
 
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
-
   values = [ 
     file("${path.module}/values/cert-manager/values.yaml") 
     ]
