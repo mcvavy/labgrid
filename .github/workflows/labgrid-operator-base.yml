@@ -1,0 +1,171 @@
+name: Terraform Deployment of Labgrid Operators, CRDs, Dependency Workloads
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - Base/**
+      - Base/Operators/**
+
+env:
+  TF_VERSION: 1.5.7
+
+jobs:
+  kubernetes-operators-crds-dependency-terraform-deploy:
+    runs-on: ubuntu-latest
+    steps:
+     - name: Checkout
+       uses: actions/checkout@v4
+
+     - name: Setup Terraform
+       uses: hashicorp/setup-terraform@v3
+       with:
+         terraform_version: ${{ env.TF_VERSION }}
+
+      # Create the variables.tfvars file from a GitHub secret
+     - name: Create Terraform vars file
+       working-directory: ./Base/Operators
+       run: echo "$VARIABLES_TFVARS" > variables.tfvars
+       env:
+        VARIABLES_TFVARS: ${{ secrets.VARIABLES_TFVARS }}
+
+     # Show the variables file
+     - name: Debug - Show variables file
+       working-directory: ./Base/Operators
+       run: ls -la
+        
+     - name: Set Terraform Environment Variables
+       run: |
+          echo "ARM_CLIENT_ID=$(jq -r .clientId <<< '${{ secrets.AZURE_CREDENTIALS }}')" >> $GITHUB_ENV
+          echo "ARM_CLIENT_SECRET=$(jq -r .clientSecret <<< '${{ secrets.AZURE_CREDENTIALS }}')" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=$(jq -r .tenantId <<< '${{ secrets.AZURE_CREDENTIALS }}')" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=$(jq -r .subscriptionId <<< '${{ secrets.AZURE_CREDENTIALS }}')" >> $GITHUB_ENV
+
+     # Set up kubeconfig from the GitHub Secret
+     - name: Get OIDC Token from Keycloak
+       run: |
+            TOKEN=$(curl -X POST \
+            ${{ secrets.KEYCLOAK_ISSUER_URL }}/protocol/openid-connect/token \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "client_id=github-actions" \
+            -d "client_secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}" \
+            -d "grant_type=client_credentials" | jq -r '.access_token')
+            echo "generated token is: $TOKEN"
+            echo "OIDC_TOKEN=$TOKEN" >> $GITHUB_ENV
+    
+     - name: Verify Kubernetes Access
+       run: |
+         curl -k -v -H "Authorization: Bearer $OIDC_TOKEN" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
+
+     - name: Terraform Init
+       working-directory: ./Base/Operators
+       run: terraform init -upgrade
+
+     - name: Terraform Validate
+       working-directory: ./Base/Operators
+       run: terraform validate
+
+     - name: Terraform Plan
+       working-directory: ./Base/Operators
+       env:
+         TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
+         TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
+         TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+         TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
+       run: |
+          echo "Testing Kubernetes access..."
+          curl -k -H "Authorization: Bearer $TF_VAR_k8s_token" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
+          terraform plan -var-file=variables.tfvars
+
+     - name: Terraform Apply
+       working-directory: ./Base/Operators
+       env:
+         TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
+         TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
+         TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+         TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
+       run: terraform apply -var-file=variables.tfvars -auto-approve
+
+       
+  kubernetes-workload-terraform-deploy:
+    runs-on: ubuntu-latest
+    needs: kubernetes-operators-crds-dependency-terraform-deploy
+    steps:
+     - name: Checkout
+       uses: actions/checkout@v4
+
+     - name: Setup Terraform
+       uses: hashicorp/setup-terraform@v3
+       with:
+         terraform_version: ${{ env.TF_VERSION }}
+
+      # Create the variables.tfvars file from a GitHub secret
+     - name: Create Terraform vars file
+       working-directory: ./Base
+       run: echo "$VARIABLES_TFVARS" > variables.tfvars
+       env:
+        VARIABLES_TFVARS: ${{ secrets.VARIABLES_TFVARS }}
+
+     # Show the variables file
+     - name: Debug - Show variables file
+       working-directory: ./Base
+       run: ls -la
+        
+     - name: Set Terraform Environment Variables
+       run: |
+          echo "ARM_CLIENT_ID=$(jq -r .clientId <<< '${{ secrets.AZURE_CREDENTIALS }}')" >> $GITHUB_ENV
+          echo "ARM_CLIENT_SECRET=$(jq -r .clientSecret <<< '${{ secrets.AZURE_CREDENTIALS }}')" >> $GITHUB_ENV
+          echo "ARM_TENANT_ID=$(jq -r .tenantId <<< '${{ secrets.AZURE_CREDENTIALS }}')" >> $GITHUB_ENV
+          echo "ARM_SUBSCRIPTION_ID=$(jq -r .subscriptionId <<< '${{ secrets.AZURE_CREDENTIALS }}')" >> $GITHUB_ENV
+
+     # Set up kubeconfig from the GitHub Secret
+     - name: Get OIDC Token from Keycloak
+       run: |
+            TOKEN=$(curl -X POST \
+            ${{ secrets.KEYCLOAK_ISSUER_URL }}/protocol/openid-connect/token \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "client_id=github-actions" \
+            -d "client_secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}" \
+            -d "grant_type=client_credentials" | jq -r '.access_token')
+            echo "generated token is: $TOKEN"
+            echo "OIDC_TOKEN=$TOKEN" >> $GITHUB_ENV
+    
+     - name: Verify Kubernetes Access
+       run: |
+         curl -k -v -H "Authorization: Bearer $OIDC_TOKEN" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
+
+     - name: Terraform Init
+       working-directory: ./Base
+       run: terraform init -upgrade
+
+     - name: Terraform Validate
+       working-directory: ./Base
+       run: terraform validate
+
+     - name: Terraform Plan
+       working-directory: ./Base
+       env:
+         TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
+         TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
+         TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+         TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
+       run: |
+          echo "Testing Kubernetes access..."
+          curl -k -H "Authorization: Bearer $TF_VAR_k8s_token" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
+          terraform plan -var-file=variables.tfvars
+
+     - name: Terraform Apply
+       working-directory: ./Base
+       env:
+         TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
+         TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
+         TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+         TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
+       run: terraform apply -var-file=variables.tfvars -auto-approve
