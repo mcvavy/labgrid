@@ -257,6 +257,15 @@ resource "kubernetes_storage_class_v1" "synology-nfs-delete" {
   mount_options = ["nfsvers=4.1"]
 }
 
+data "http" "snapshot_controller_setup" {
+  method = "GET"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
+}
+
+resource "kubectl_manifest" "snapshot_controller_setup" {
+  yaml_body = data.http.snapshot_controller_setup.response_body
+}
+
 resource "kubectl_manifest" "synology-snapshot-class" {
     yaml_body = <<YAML
 apiVersion: snapshot.storage.k8s.io/v1
@@ -268,7 +277,10 @@ metadata:
 driver: csi.san.synology.com
 deletionPolicy: Delete
 YAML
-depends_on = [kubernetes_manifest.synology-csi-namespace]
+depends_on = [
+  kubectl_manifest.snapshot_controller_setup,
+  kubernetes_manifest.synology-csi-namespace
+]
 }
 
 resource "helm_release" "argocd" {

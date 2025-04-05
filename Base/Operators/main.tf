@@ -129,23 +129,11 @@ data "http" "snapshot_controller_rbac" {
   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
 }
 
-data "http" "snapshot_controller_setup" {
-  method = "GET"
-  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.1/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
-}
-
 resource "kubectl_manifest" "snapshot_controller_rbac" {
   yaml_body = data.http.snapshot_controller_rbac.response_body
   depends_on = [
     kubectl_manifest.volume_snapshot_classes,
     kubectl_manifest.volume_snapshot_contents,
     kubectl_manifest.volume_snapshots
-  ]
-}
-
-resource "kubectl_manifest" "snapshot_controller_setup" {
-  yaml_body = data.http.snapshot_controller_setup.response_body
-  depends_on = [
-    kubectl_manifest.snapshot_controller_rbac
   ]
 }
