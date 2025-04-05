@@ -109,15 +109,15 @@ data "http" "snapshot_controller_setup" {
 resource "kubectl_manifest" "snapshot_controller_rbac" {
   yaml_body = data.http.snapshot_controller_rbac.response_body
   depends_on = [
-    kubernetes_manifest.snapshot_crd_volumesnapshotclasses,
-    kubernetes_manifest.snapshot_crd_volumesnapshotcontents,
-    kubernetes_manifest.snapshot_crd_volumesnapshots
+    kubectl_manifest.snapshot_crd_volumesnapshotclasses,
+    kubectl_manifest.snapshot_crd_volumesnapshotcontents,
+    kubectl_manifest.snapshot_crd_volumesnapshots
   ]
 }
 
 resource "kubectl_manifest" "snapshot_controller_setup" {
   yaml_body = data.http.snapshot_controller_setup.response_body
   depends_on = [
-    kubernetes_manifest.snapshot_controller_rbac
+    kubectl_manifest.snapshot_controller_rbac
   ]
 }
