@@ -57,62 +57,62 @@ resource "helm_release" "cloudnative-pg-operator" {
   wait = true
 }
 
-################################################################################
-# Step 1: Fetch CRD YAMLs from GitHub
-################################################################################
+# ################################################################################
+# # Step 1: Fetch CRD YAMLs from GitHub
+# ################################################################################
 
-data "http" "snapshot_crd_volumesnapshotclasses" {
-  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
-}
+# data "http" "snapshot_crd_volumesnapshotclasses" {
+#   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
+# }
 
-data "http" "snapshot_crd_volumesnapshotcontents" {
-  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
-}
+# data "http" "snapshot_crd_volumesnapshotcontents" {
+#   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
+# }
 
-data "http" "snapshot_crd_volumesnapshots" {
-  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
-}
+# data "http" "snapshot_crd_volumesnapshots" {
+#   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
+# }
 
-################################################################################
-# Step 2: Apply the CRDs
-################################################################################
+# ################################################################################
+# # Step 2: Apply the CRDs
+# ################################################################################
 
-resource "kubernetes_manifest" "snapshot_crd_volumesnapshotclasses" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshotclasses.body)
-}
+# resource "kubernetes_manifest" "snapshot_crd_volumesnapshotclasses" {
+#   manifest = yamldecode(data.http.snapshot_crd_volumesnapshotclasses.body)
+# }
 
-resource "kubernetes_manifest" "snapshot_crd_volumesnapshotcontents" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshotcontents.body)
-}
+# resource "kubernetes_manifest" "snapshot_crd_volumesnapshotcontents" {
+#   manifest = yamldecode(data.http.snapshot_crd_volumesnapshotcontents.body)
+# }
 
-resource "kubernetes_manifest" "snapshot_crd_volumesnapshots" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshots.body)
-}
+# resource "kubernetes_manifest" "snapshot_crd_volumesnapshots" {
+#   manifest = yamldecode(data.http.snapshot_crd_volumesnapshots.body)
+# }
 
-################################################################################
-# Step 3: Fetch & Install the Snapshot Controller (RBAC + Deployment)
-################################################################################
+# ################################################################################
+# # Step 3: Fetch & Install the Snapshot Controller (RBAC + Deployment)
+# ################################################################################
 
-data "http" "snapshot_controller_rbac" {
-  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
-}
+# data "http" "snapshot_controller_rbac" {
+#   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
+# }
 
-data "http" "snapshot_controller_setup" {
-  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
-}
+# data "http" "snapshot_controller_setup" {
+#   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/v8.2.0/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
+# }
 
-resource "kubernetes_manifest" "snapshot_controller_rbac" {
-  manifest = yamldecode(data.http.snapshot_controller_rbac.body)
-  depends_on = [
-    kubernetes_manifest.snapshot_crd_volumesnapshotclasses,
-    kubernetes_manifest.snapshot_crd_volumesnapshotcontents,
-    kubernetes_manifest.snapshot_crd_volumesnapshots
-  ]
-}
+# resource "kubernetes_manifest" "snapshot_controller_rbac" {
+#   manifest = yamldecode(data.http.snapshot_controller_rbac.body)
+#   depends_on = [
+#     kubernetes_manifest.snapshot_crd_volumesnapshotclasses,
+#     kubernetes_manifest.snapshot_crd_volumesnapshotcontents,
+#     kubernetes_manifest.snapshot_crd_volumesnapshots
+#   ]
+# }
 
-resource "kubernetes_manifest" "snapshot_controller_setup" {
-  manifest = yamldecode(data.http.snapshot_controller_setup.body)
-  depends_on = [
-    kubernetes_manifest.snapshot_controller_rbac
-  ]
-}
+# resource "kubernetes_manifest" "snapshot_controller_setup" {
+#   manifest = yamldecode(data.http.snapshot_controller_setup.body)
+#   depends_on = [
+#     kubernetes_manifest.snapshot_controller_rbac
+#   ]
+# }
