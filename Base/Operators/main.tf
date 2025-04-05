@@ -62,14 +62,17 @@ resource "helm_release" "cloudnative-pg-operator" {
 ################################################################################
 
 data "http" "snapshot_crd_volumesnapshotclasses" {
+  method = "GET"
   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
 }
 
 data "http" "snapshot_crd_volumesnapshotcontents" {
+  method = "GET"
   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
 }
 
 data "http" "snapshot_crd_volumesnapshots" {
+  method = "GET"
   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
 }
 
@@ -78,15 +81,15 @@ data "http" "snapshot_crd_volumesnapshots" {
 ################################################################################
 
 resource "kubernetes_manifest" "snapshot_crd_volumesnapshotclasses" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshotclasses.body)
+  manifest = yamldecode(data.http.snapshot_crd_volumesnapshotclasses.response_body)
 }
 
 resource "kubernetes_manifest" "snapshot_crd_volumesnapshotcontents" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshotcontents.body)
+  manifest = yamldecode(data.http.snapshot_crd_volumesnapshotcontents.response_body)
 }
 
 resource "kubernetes_manifest" "snapshot_crd_volumesnapshots" {
-  manifest = yamldecode(data.http.snapshot_crd_volumesnapshots.body)
+  manifest = yamldecode(data.http.snapshot_crd_volumesnapshots.response_body)
 }
 
 ################################################################################
@@ -94,15 +97,17 @@ resource "kubernetes_manifest" "snapshot_crd_volumesnapshots" {
 ################################################################################
 
 data "http" "snapshot_controller_rbac" {
+  method = "GET"
   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
 }
 
 data "http" "snapshot_controller_setup" {
+  method = "GET"
   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/master/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
 }
 
 resource "kubernetes_manifest" "snapshot_controller_rbac" {
-  manifest = yamldecode(data.http.snapshot_controller_rbac.body)
+  manifest = yamldecode(data.http.snapshot_controller_rbac.response_body)
   depends_on = [
     kubernetes_manifest.snapshot_crd_volumesnapshotclasses,
     kubernetes_manifest.snapshot_crd_volumesnapshotcontents,
@@ -111,7 +116,7 @@ resource "kubernetes_manifest" "snapshot_controller_rbac" {
 }
 
 resource "kubernetes_manifest" "snapshot_controller_setup" {
-  manifest = yamldecode(data.http.snapshot_controller_setup.body)
+  manifest = yamldecode(data.http.snapshot_controller_setup.response_body)
   depends_on = [
     kubernetes_manifest.snapshot_controller_rbac
   ]

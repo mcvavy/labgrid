@@ -26,6 +26,11 @@ terraform {
       source  = "hashicorp/external"
       version = "2.3.4"
     }
+
+    http = {
+      source = "hashicorp/http"
+      version = "3.4.5"
+    }
   }
 
   backend "azurerm" {
@@ -78,5 +83,6 @@ provider "kubectl" {
   token = data.external.k8s_token.result.token
 }
 
-provider "external" {
-}
+provider "external" {}
+
+provider "http" {}

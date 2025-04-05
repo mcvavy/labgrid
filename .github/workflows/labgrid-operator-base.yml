@@ -25,15 +25,8 @@ jobs:
        with:
          terraform_version: ${{ env.TF_VERSION }}
 
-      # Create the variables.tfvars file from a GitHub secret
-     - name: Create Terraform vars file
-       working-directory: ./Base/Operators
-       run: echo "$VARIABLES_TFVARS" > variables.tfvars
-       env:
-        VARIABLES_TFVARS: ${{ secrets.VARIABLES_TFVARS }}
-
      # Show the variables file
-     - name: Debug - Show variables file
+     - name: Debug - Show files
        working-directory: ./Base/Operators
        run: ls -la
         
@@ -79,7 +72,7 @@ jobs:
        run: |
           echo "Testing Kubernetes access..."
           curl -k -H "Authorization: Bearer $TF_VAR_k8s_token" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
-          terraform plan -var-file=variables.tfvars
+          terraform plan
 
      - name: Terraform Apply
        working-directory: ./Base/Operators
@@ -89,7 +82,7 @@ jobs:
          TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
          TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
          TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
-       run: terraform apply -var-file=variables.tfvars -auto-approve
+       run: terraform apply -auto-approve
 
        
   kubernetes-workload-terraform-deploy:
