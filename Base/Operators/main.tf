@@ -134,8 +134,22 @@ data "http" "snapshot_controller_setup" {
   url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/refs/tags/v8.2.1/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
 }
 
-resource "kubectl_manifest" "snapshot_controller_rbac" {
-  yaml_body = data.http.snapshot_controller_rbac.response_body
+locals {
+  # Split the resonpse body into separate docs. Had to split because 
+  # kubectl_manifest could not handle multiple doc yaml manifests
+  snapshot_controller_rbac_docs = [
+    for doc in split("---", data.http.snapshot_controller_rbac.response_body):
+      trim(doc)
+      if trim(doc) != ""
+  ]
+}
+
+resource "kubernetes_manifest" "snapshot_controller_rbac_each" {
+  for_each = { for k, manifest in local.snapshot_controller_rbac_docs : k => manifest }
+
+  # Convert the YAML string into an HCL object
+  manifest = yamldecode(each.value)
+
   depends_on = [
     kubectl_manifest.volume_snapshot_classes,
     kubectl_manifest.volume_snapshot_contents,
@@ -146,6 +160,6 @@ resource "kubectl_manifest" "snapshot_controller_rbac" {
 resource "kubectl_manifest" "snapshot_controller_setup" {
   yaml_body = data.http.snapshot_controller_setup.response_body
   depends_on = [
-    kubectl_manifest.snapshot_controller_rbac
+    kubernetes_manifest.snapshot_controller_rbac_each
   ]
 }
