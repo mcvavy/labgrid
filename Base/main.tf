@@ -257,19 +257,19 @@ resource "kubernetes_storage_class_v1" "synology-nfs-delete" {
   mount_options = ["nfsvers=4.1"]
 }
 
-resource "kubectl_manifest" "synology-snapshot-class" {
-    yaml_body = <<YAML
-apiVersion: snapshot.storage.k8s.io/v1
-kind: VolumeSnapshotClass
-metadata:
-  name: synology-snapshotclass
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "false"
-driver: csi.san.synology.com
-deletionPolicy: Delete
-YAML
-depends_on = [  kubernetes_manifest.synology-csi-namespace ]
-}
+# resource "kubectl_manifest" "synology-snapshot-class" {
+#     yaml_body = <<YAML
+# apiVersion: snapshot.storage.k8s.io/v1
+# kind: VolumeSnapshotClass
+# metadata:
+#   name: synology-snapshotclass
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "false"
+# driver: csi.san.synology.com
+# deletionPolicy: Delete
+# YAML
+# depends_on = [  kubernetes_manifest.synology-csi-namespace ]
+# }
 
 resource "helm_release" "argocd" {
   depends_on = [ kubernetes_manifest.metallb_l2advertisement ]
