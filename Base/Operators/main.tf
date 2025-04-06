@@ -135,12 +135,13 @@ data "http" "snapshot_controller_setup" {
 }
 
 locals {
-  # Split the resonpse body into separate docs. Had to split because 
-  # kubectl_manifest could not handle multiple doc yaml manifests
+  # 1) Split the file on "---"  
+  # 2) Trim spaces/newlines
+  # 3) Skip empty strings
+  # 4) Skip anything that can't be parsed by `yamldecode` (e.g. the comment chunk)
   snapshot_controller_rbac_docs = [
-    for doc in split("---", data.http.snapshot_controller_rbac.response_body):
-      trimspace(doc)
-      if trimspace(doc) != ""
+    for doc in split("---", data.http.snapshot_controller_rbac.response_body) : trimspace(doc)
+    if trimspace(doc) != "" && can(yamldecode(trimspace(doc)))
   ]
 }
 
