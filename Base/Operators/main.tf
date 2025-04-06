@@ -66,12 +66,12 @@ data "http" "volume_snapshot_classes" {
 
 data "http" "volume_snapshot_contents" {
   method = "GET"
-  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/refs/tags/v8.2.1/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshotcontents.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/refs/tags/v8.2.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
 }
 
 data "http" "volume_snapshots" {
   method = "GET"
-  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/refs/tags/v8.2.1/client/config/crd/groupsnapshot.storage.k8s.io_volumegroupsnapshots.yaml"
+  url = "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/refs/tags/v8.2.1/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
 }
 
 
