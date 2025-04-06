@@ -139,8 +139,8 @@ locals {
   # kubectl_manifest could not handle multiple doc yaml manifests
   snapshot_controller_rbac_docs = [
     for doc in split("---", data.http.snapshot_controller_rbac.response_body):
-      trim(doc)
-      if trim(doc) != ""
+      trimspace(doc)
+      if trimspace(doc) != ""
   ]
 }
 
