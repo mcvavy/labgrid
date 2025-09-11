@@ -58,6 +58,21 @@ resource "kubernetes_secret_v1" "cloudflare_token_secret" {
   type = "Opaque"
 }
 
+resource "kubernetes_secret_v1" "tranzr-cloudflare_token_secret" {
+  depends_on = [ kubernetes_manifest.metallb_l2advertisement ]
+
+  metadata {
+    name = "tranzr-cloudflare-token-secret"
+    namespace = "${local.certManagerSettings.namespace}"
+  }
+
+  data = {
+    cloudflare-token: "${var.tranzrCloudflareApiTokenKey}"
+  }
+
+  type = "Opaque"
+}
+
 resource "kubernetes_manifest" "letsencrypt-staging" {
   depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
 
@@ -93,6 +108,41 @@ resource "kubernetes_manifest" "letsencrypt-staging" {
   }
 }
 
+resource "kubernetes_manifest" "tranzr-letsencrypt-staging" {
+  depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
+
+  manifest = {
+    apiVersion = local.clusterIssuerSettings.apiVersion
+    kind       = local.clusterIssuerSettings.kind
+    metadata = {
+      name = local.clusterIssuerSettings.tranzrNameStaging
+    }
+    spec = {
+      acme = {
+        server  = local.clusterIssuerSettings.stagingServer
+        email   = local.clusterIssuerSettings.email
+        privateKeySecretRef = {
+          name = local.clusterIssuerSettings.tranzrNameStaging
+        }
+        solvers = [{
+          dns01 = {
+            cloudflare = {
+              email = local.clusterIssuerSettings.email
+              apiTokenSecretRef = {
+                name = "tranzr-cloudflare-token-secret"
+                key  = "cloudflare-token"
+              }
+            }
+          }
+          selector = {
+            dnsZones = [var.tranzrDnsZones]
+          }
+        }]
+      }
+    }
+  }
+}
+
 resource "kubernetes_manifest" "letsencrypt-production" {
   depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
 
@@ -121,6 +171,41 @@ resource "kubernetes_manifest" "letsencrypt-production" {
           }
           selector = {
             dnsZones = [var.dnsZones]
+          }
+        }]
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "tranzr-letsencrypt-production" {
+  depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
+
+  manifest = {
+    apiVersion = local.clusterIssuerSettings.apiVersion
+    kind       = local.clusterIssuerSettings.kind
+    metadata = {
+      name = local.clusterIssuerSettings.tranzrNameProduction
+    }
+    spec = {
+      acme = {
+        server  = local.clusterIssuerSettings.productionServer
+        email   = local.clusterIssuerSettings.email
+        privateKeySecretRef = {
+          name = local.clusterIssuerSettings.tranzrNameProduction
+        }
+        solvers = [{
+          dns01 = {
+            cloudflare = {
+              email = local.clusterIssuerSettings.email
+              apiTokenSecretRef = {
+                name = "tranzr-cloudflare-token-secret"
+                key  = "cloudflare-token"
+              }
+            }
+          }
+          selector = {
+            dnsZones = [var.tranzrDnsZones]
           }
         }]
       }

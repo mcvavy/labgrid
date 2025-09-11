@@ -39,6 +39,8 @@ locals {
   clusterIssuerSettings = {
     nameStaging          = "letsencrypt-staging"
     nameProduction       = "letsencrypt-production"
+    tranzrNameStaging          = "tranzr-letsencrypt-staging"
+    tranzrNameProduction       = "tranzr-letsencrypt-production"
     stagingServer        = "https://acme-staging-v02.api.letsencrypt.org/directory"
     productionServer     = "https://acme-v02.api.letsencrypt.org/directory"
     namespace     = "cert-manager"

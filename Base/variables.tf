@@ -31,8 +31,17 @@ variable "dnsZones" {
   description = "Cloudflare DNS zones"
 }
 
+variable "tranzrDnsZones" {
+  description = "Tranzr Cloudflare DNS zones"
+}
+
 variable "cloudflareApiTokenKey" {
   description = "Cloudflare API token key"
+  sensitive = true
+}
+
+variable "tranzrCloudflareApiTokenKey" {
+  description = "Tranzr Cloudflare API token key"
   sensitive = true
 }
 
