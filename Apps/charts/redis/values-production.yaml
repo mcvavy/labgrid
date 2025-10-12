@@ -17,14 +17,12 @@ auth:
 
 volumePermissions:
   enabled: true
-  containerSecurityContext:
-    runAsUser: 0
 
 # Common Configuration (AOF persistence enabled by default)
-commonConfiguration: |-
-  dir /bitnami/redis/data
-  appendonly yes
-  appendfsync everysec
+# commonConfiguration: |-
+#   dir /bitnami/redis/data
+#   appendonly yes
+#   appendfsync everysec
 
 # Sentinel Configuration
 sentinel:
