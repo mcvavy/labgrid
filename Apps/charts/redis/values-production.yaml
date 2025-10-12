@@ -15,6 +15,9 @@ auth:
   usePasswordFiles: true
   usePasswordFileFromSecret: true
 
+volumePermissions:
+  enabled: true
+
 # Common Configuration (AOF persistence enabled by default)
 commonConfiguration: |-
   # Enable AOF https://redis.io/topics/persistence#append-only-file
