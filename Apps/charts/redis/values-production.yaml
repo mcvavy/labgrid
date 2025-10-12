@@ -150,7 +150,6 @@ tls:
     - "redis-master.redis-system.svc.cluster.local"
     - "redis-master.redis-system.svc"
     - "redis-master.redis-system"
-    - "redis-master"
   privateKey:
     algorithm: "RSA"
     size: 2048
