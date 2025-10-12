@@ -40,6 +40,10 @@ resource "helm_release" "ingress_nginx" {
   namespace        = local.ingressNginxSettings.namespace
   create_namespace = true
 
+  # values = [
+  #   file("${path.module}/values/ingress-nginx/values.yaml")
+  # ]
+
   depends_on = [kubernetes_manifest.metallb_l2advertisement]
 }
 

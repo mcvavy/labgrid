@@ -1,0 +1,96 @@
+# Staging values for Redis
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Redis Architecture - Master-Replica with Sentinel
+architecture: replication
+
+# Authentication
+auth:
+  enabled: true
+  sentinel: true
+  password: ""
+  existingSecret: "redis-stg-credentials"
+  existingSecretPasswordKey: "REDIS_PASSWORD"
+  usePasswordFiles: true
+  usePasswordFileFromSecret: true
+
+# Common Configuration
+commonConfiguration: |-
+  # Enable AOF https://redis.io/topics/persistence#append-only-file
+  appendonly yes
+  # Disable RDB persistence, AOF persistence already enabled.
+  save ""
+
+# Sentinel Configuration (Reduced for staging)
+sentinel:
+  enabled: true
+  masterSet: mymaster
+  quorum: 1
+  downAfterMilliseconds: 30000
+  failoverTimeout: 90000
+  parallelSyncs: 1
+  automateClusterRecovery: true
+  redisShutdownWaitFailover: true
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+
+# Master Configuration (Reduced resources)
+master:
+  persistence:
+    enabled: true
+    size: 4Gi
+    storageClass: "local-path"
+    path: /data
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Replica Configuration (Single replica for staging)
+replica:
+  replicaCount: 1
+  persistence:
+    enabled: true
+    size: 4Gi
+    storageClass: "local-path"
+    path: /data
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# Monitoring
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+
+# Network Policy
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+
+# Namespace override (if needed)
+namespaceOverride: ""
+
+# TLS Configuration (disabled for staging)
+tls:
+  enabled: false
+
+# External Secrets (disabled for staging)
+externalSecretCredentials:
+  enabled: false

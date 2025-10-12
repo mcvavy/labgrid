@@ -1,0 +1,3 @@
+tcp:
+  "6379": "redis-system/redis-master:6379"
+  "6380": "redis-system/redis-master:6380"

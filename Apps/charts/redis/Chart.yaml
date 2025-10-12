@@ -1,0 +1,15 @@
+apiVersion: v2
+name: redis
+description: Standalone Redis master-replica with Sentinel for Labgrid infrastructure
+type: application
+version: 0.1.0
+appVersion: "8.2.1"
+dependencies:
+  - name: redis
+    enabled: true
+    version: 23.1.1
+    repository: oci://registry-1.docker.io/bitnamicharts
+maintainers:
+  - name: LabGrid Labs
+    email: admin@labgrid.net
+    url: blog.labgrid.net

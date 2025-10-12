@@ -1,0 +1,25 @@
+{{- if .Values.tls.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ .Values.tls.existingSecret }}
+  namespace: {{ .Release.Namespace | default .Values.namespaceOverride }}
+  labels:
+    app.kubernetes.io/component: {{ .Values.tls.existingSecret | quote }}
+    app.kubernetes.io/name: {{ .Chart.Name | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+spec:
+  secretName: {{ .Values.tls.existingSecret }}
+  issuerRef:
+    name: {{ .Values.tls.issuerRef.name }}
+    kind: {{ .Values.tls.issuerRef.kind }}
+  dnsNames:
+    {{- range .Values.tls.dnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+  privateKey:
+    algorithm: {{ .Values.tls.privateKey.algorithm }}
+    size: {{ .Values.tls.privateKey.size }}
+  duration: {{ .Values.tls.duration }}
+  renewBefore: {{ .Values.tls.renewBefore }}
+{{- end }}
