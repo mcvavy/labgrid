@@ -17,14 +17,14 @@ auth:
 
 volumePermissions:
   enabled: true
+  containerSecurityContext:
+    runAsUser: 0
 
 # Common Configuration (AOF persistence enabled by default)
 commonConfiguration: |-
-  # Enable AOF https://redis.io/topics/persistence#append-only-file
+  dir /bitnami/redis/data
   appendonly yes
   appendfsync everysec
-  # Disable RDB persistence, AOF persistence already enabled.
-  save ""
 
 # Sentinel Configuration
 sentinel:
