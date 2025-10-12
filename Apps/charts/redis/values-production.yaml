@@ -17,12 +17,11 @@ auth:
 
 # Common Configuration (AOF persistence enabled by default)
 commonConfiguration: |-
-  tls-port 6379
-  port 0                 # disable plain TCP port when enforcing TLS-only
-  tls-replication yes
-  tls-cluster yes
+  # Enable AOF https://redis.io/topics/persistence#append-only-file
   appendonly yes
   appendfsync everysec
+  # Disable RDB persistence, AOF persistence already enabled.
+  save ""
 
 # Sentinel Configuration
 sentinel:
@@ -60,6 +59,16 @@ master:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  # Fix permissions for AOF directory
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
 
 # Replica Configuration
 replica:
@@ -80,6 +89,16 @@ replica:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  # Fix permissions for AOF directory
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+    fsGroupChangePolicy: Always
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    runAsNonRoot: true
 
 # Monitoring
 metrics:
@@ -125,6 +144,10 @@ tls:
     size: 2048
   duration: "2160h"  # 90 days
   renewBefore: "360h"  # 15 days
+
+# Volume permissions init container
+volumePermissions:
+  enabled: true
 
 # External Secrets for credentials
 externalSecretCredentials:
