@@ -146,10 +146,6 @@ tls:
   dnsNames:
     - "redis.labgrid.net"
     - "redis-local.labgrid.net"
-    # Internal DNS names for cluster access
-    - "redis-master.redis-system.svc.cluster.local"
-    - "redis-master.redis-system.svc"
-    - "redis-master.redis-system"
   privateKey:
     algorithm: "RSA"
     size: 2048
