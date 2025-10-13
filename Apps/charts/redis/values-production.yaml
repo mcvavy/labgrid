@@ -35,6 +35,9 @@ redis:
     parallelSyncs: 1
     automateClusterRecovery: true
     redisShutdownWaitFailover: true
+    # Disable TLS for Sentinel
+    tls:
+      enabled: false
     resources:
       requests:
         memory: "128Mi"
