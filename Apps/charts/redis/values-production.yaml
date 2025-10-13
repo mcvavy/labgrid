@@ -12,7 +12,7 @@ redis:
     enabled: true
 
   sentinel:
-    enabled: true
+    enabled: false
     masterSet: mymaster
     quorum: 2
     downAfterMilliseconds: 60000
