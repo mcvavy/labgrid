@@ -32,6 +32,7 @@ redis:
 
   master:
     service:
+      type: LoadBalancer
       ports:
         redis: 6379
     persistence:
