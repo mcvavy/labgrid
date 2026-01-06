@@ -62,7 +62,7 @@ resource "kubernetes_secret_v1" "cloudflare_token_secret" {
   type = "Opaque"
 }
 
-resource "kubernetes_secret_v1" "tranzr-cloudflare_token_secret" {
+resource "kubernetes_secret_v1" "tranzr_cloudflare_token_secret" {
   depends_on = [ kubernetes_manifest.metallb_l2advertisement ]
 
   metadata {
@@ -113,7 +113,7 @@ resource "kubernetes_manifest" "letsencrypt-staging" {
 }
 
 resource "kubernetes_manifest" "tranzr-letsencrypt-staging" {
-  depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
+  depends_on = [kubernetes_secret_v1.tranzr_cloudflare_token_secret]
 
   manifest = {
     apiVersion = local.clusterIssuerSettings.apiVersion
@@ -183,7 +183,7 @@ resource "kubernetes_manifest" "letsencrypt-production" {
 }
 
 resource "kubernetes_manifest" "tranzr-letsencrypt-production" {
-  depends_on = [kubernetes_secret_v1.cloudflare_token_secret]
+  depends_on = [kubernetes_secret_v1.tranzr_cloudflare_token_secret]
 
   manifest = {
     apiVersion = local.clusterIssuerSettings.apiVersion
@@ -480,17 +480,17 @@ resource "helm_release" "pgadmin" {
     ]
 }
 
-resource "helm_release" "prometheus" {
-  depends_on = [ kubernetes_manifest.metallb_l2advertisement ]
+# resource "helm_release" "prometheus" {
+#   depends_on = [ kubernetes_manifest.metallb_l2advertisement ]
 
-  name             = local.prometheusSettings.name
-  repository       = local.prometheusSettings.repository
-  chart            = local.prometheusSettings.name
-  namespace        = local.prometheusSettings.namespace
-  version          = local.prometheusSettings.chart_version
-  create_namespace = true
+#   name             = local.prometheusSettings.name
+#   repository       = local.prometheusSettings.repository
+#   chart            = local.prometheusSettings.name
+#   namespace        = local.prometheusSettings.namespace
+#   version          = local.prometheusSettings.chart_version
+#   create_namespace = true
 
-  values = [ 
-    file("${path.module}/values/prometheus/values.yaml") 
-    ]
-}
+#   values = [ 
+#     file("${path.module}/values/prometheus/values.yaml") 
+#     ]
+# }
