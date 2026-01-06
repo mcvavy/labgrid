@@ -73,7 +73,7 @@ kube-prometheus-stack:
       type: sts
       storageClassName: synology-iscsi-delete
       accessModes: ["ReadWriteOnce"]
-      size: 50Gi
+      size: 10Gi
     # adminUser: admin
     admin:
       existingSecret: "labgrid-monitoring-credentials"
