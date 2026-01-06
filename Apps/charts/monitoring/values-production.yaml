@@ -30,7 +30,7 @@ kube-prometheus-stack:
             accessModes: ["ReadWriteOnce"]
             resources:
               requests:
-                storage: 50Gi
+                storage: 10Gi
     ingress:
       enabled: true
       hosts:
@@ -55,7 +55,7 @@ kube-prometheus-stack:
             accessModes: ["ReadWriteOnce"]
             resources:
               requests:
-                storage: 50Gi
+                storage: 10Gi
     ingress:
       enabled: true
       hosts:
