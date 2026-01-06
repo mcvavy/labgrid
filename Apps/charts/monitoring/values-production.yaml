@@ -11,6 +11,9 @@ monitoringCredentials:
     - secretKey: grafana-admin-password
       remoteRef:
         key: labgrid-grafana-admin-password
+    - secretKey: grafana-admin-user
+      remoteRef:
+        key: labgrid-grafana-admin-user
 
 ###############################
 # kube-prometheus-stack values #
@@ -72,10 +75,10 @@ kube-prometheus-stack:
       storageClassName: synology-iscsi-delete
       accessModes: ["ReadWriteOnce"]
       size: 50Gi
-    adminUser: admin
+    # adminUser: admin
     admin:
       existingSecret: "labgrid-monitoring-credentials"
-      # userKey: grafana-admin-user
+      userKey: grafana-admin-user
       passwordKey: grafana-admin-password
     ingress:
       enabled: true
