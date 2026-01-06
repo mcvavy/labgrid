@@ -118,7 +118,7 @@ loki:
       storageClass: synology-iscsi-delete
       accessModes:
         - ReadWriteOnce
-      size: 50Gi
+      size: 10Gi
 
   # Component replicas (0 when using SingleBinary mode)
   write:
