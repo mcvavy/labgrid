@@ -42,7 +42,7 @@ resource "argocd_application_set" "production" {
             prune     = false
             self_heal = true
           }
-          sync_options = ["CreateNamespace=true"]
+          sync_options = ["CreateNamespace=true", "ServerSideApply=true"]
         }
       }
     }
