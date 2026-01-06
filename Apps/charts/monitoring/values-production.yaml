@@ -37,7 +37,7 @@ kube-prometheus-stack:
       annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-production"
         nginx.ingress.kubernetes.io/backend-protocol: HTTP
-        nginx.ingress.kubernetes.io/force-ssl-redirect: true
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   prometheus:
     prometheusSpec:
@@ -63,7 +63,7 @@ kube-prometheus-stack:
       annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-production"
         nginx.ingress.kubernetes.io/backend-protocol: HTTP
-        nginx.ingress.kubernetes.io/force-ssl-redirect: true
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   grafana:
     persistence:
