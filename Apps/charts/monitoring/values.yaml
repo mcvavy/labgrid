@@ -11,6 +11,9 @@ monitoringCredentials:
     - secretKey: grafana-admin-password
       remoteRef:
         key: labgrid-grafana-admin-password
+    - secretKey: grafana-admin-user
+      remoteRef:
+        key: labgrid-grafana-admin-user
 
 ###############################
 # kube-prometheus-stack values #
@@ -37,7 +40,7 @@ kube-prometheus-stack:
       annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-production"
         nginx.ingress.kubernetes.io/backend-protocol: HTTP
-        nginx.ingress.kubernetes.io/force-ssl-redirect: true
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   prometheus:
     prometheusSpec:
@@ -53,7 +56,6 @@ kube-prometheus-stack:
             resources:
               requests:
                 storage: 50Gi
-            selector: {}
     ingress:
       enabled: true
       hosts:
@@ -63,7 +65,7 @@ kube-prometheus-stack:
       annotations:
         cert-manager.io/cluster-issuer: "letsencrypt-production"
         nginx.ingress.kubernetes.io/backend-protocol: HTTP
-        nginx.ingress.kubernetes.io/force-ssl-redirect: true
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   grafana:
     persistence:
@@ -72,10 +74,10 @@ kube-prometheus-stack:
       storageClassName: synology-iscsi-delete
       accessModes: ["ReadWriteOnce"]
       size: 50Gi
-    adminUser: admin
+    # adminUser: admin
     admin:
       existingSecret: "labgrid-monitoring-credentials"
-      # userKey: grafana-admin-user
+      userKey: grafana-admin-user
       passwordKey: grafana-admin-password
     ingress:
       enabled: true
@@ -146,3 +148,15 @@ loki:
       filesystem:
         chunks_directory: /var/loki/chunks
         rules_directory: /var/loki/rules
+
+    # Loki schema configuration (required by the chart)
+    # See: https://grafana.com/docs/loki/latest/operations/storage/schema/
+    schemaConfig:
+      configs:
+        - from: "2024-04-01"
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: index_
+            period: 24h

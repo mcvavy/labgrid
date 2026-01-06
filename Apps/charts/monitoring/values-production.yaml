@@ -56,7 +56,6 @@ kube-prometheus-stack:
             resources:
               requests:
                 storage: 50Gi
-            selector: {}
     ingress:
       enabled: true
       hosts:
