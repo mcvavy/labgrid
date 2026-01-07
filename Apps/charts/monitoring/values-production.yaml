@@ -23,14 +23,14 @@ kube-prometheus-stack:
     alertmanagerSpec:
       replicas: 1
       retention: 120h
-      storage:
-        volumeClaimTemplate:
-          spec:
-            storageClassName: synology-iscsi-delete-wffc
-            accessModes: ["ReadWriteOnce"]
-            resources:
-              requests:
-                storage: 10Gi
+      # storage:
+      #   volumeClaimTemplate:
+      #     spec:
+      #       storageClassName: synology-iscsi-delete-wffc
+      #       accessModes: ["ReadWriteOnce"]
+      #       resources:
+      #         requests:
+      #           storage: 10Gi
     ingress:
       enabled: true
       hosts:
