@@ -94,7 +94,7 @@ kube-prometheus-stack:
       - name: Loki
         type: loki
         access: proxy
-        url: http://loki-gateway.logging.svc.cluster.local
+        url: http://monitoring-loki-gateway.monitoring-system.svc.cluster.local
         # Even with auth_enabled: false, Loki requires an org ID header
         # This is a known quirk - the value can be anything since auth is disabled
         jsonData:
