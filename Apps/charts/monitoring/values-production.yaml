@@ -20,17 +20,17 @@ monitoringCredentials:
 ###############################
 kube-prometheus-stack:
   alertmanager:
-    # alertmanagerSpec:
-    #   replicas: 1
-    #   retention: 120h
-    #   storage:
-    #     volumeClaimTemplate:
-    #       spec:
-    #         storageClassName: synology-iscsi-delete
-    #         accessModes: ["ReadWriteOnce"]
-    #         resources:
-    #           requests:
-    #             storage: 10Gi
+    alertmanagerSpec:
+      replicas: 1
+      retention: 120h
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: synology-iscsi-delete-wffc
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
     ingress:
       enabled: true
       hosts:
@@ -51,7 +51,7 @@ kube-prometheus-stack:
       storageSpec:
         volumeClaimTemplate:
           spec:
-            storageClassName: synology-iscsi-delete
+            storageClassName: synology-iscsi-delete-wffc
             accessModes: ["ReadWriteOnce"]
             resources:
               requests:
@@ -71,7 +71,7 @@ kube-prometheus-stack:
     persistence:
       enabled: true
       type: sts
-      storageClassName: synology-iscsi-delete
+      storageClassName: synology-iscsi-delete-wffc
       accessModes: ["ReadWriteOnce"]
       size: 10Gi
     # adminUser: admin
@@ -115,7 +115,7 @@ loki:
     replicas: 1
     persistence:
       enabled: true
-      storageClass: synology-iscsi-delete
+      storageClass: synology-iscsi-delete-wffc
       accessModes:
         - ReadWriteOnce
       size: 10Gi

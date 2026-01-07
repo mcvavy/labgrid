@@ -312,7 +312,7 @@ resource "kubernetes_storage_class_v1" "synology-iscsi-delete" {
   metadata {
     name = "synology-iscsi-delete"
     annotations = {
-      "storageclass.kubernetes.io/is-default-class" = "true"
+      "storageclass.kubernetes.io/is-default-class" = "false"
     }
   }
   storage_provisioner = "csi.san.synology.com"
@@ -327,11 +327,31 @@ resource "kubernetes_storage_class_v1" "synology-iscsi-delete" {
   }
 }
 
+resource "kubernetes_storage_class_v1" "synology-iscsi-delete-wffc" {
+  metadata {
+    name = "synology-iscsi-delete-wffc"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
+  }
+  storage_provisioner = "csi.san.synology.com"
+  reclaim_policy      = "Delete"
+  allow_volume_expansion = true
+  volume_binding_mode = "WaitForFirstConsumer"
+  parameters = {
+    dsm = var.synologyClientIp
+    fsType: "btrfs"
+    location = "/volume1"
+    protocol = "iscsi"
+    formatOptions = "--nodiscard"
+  }
+}
+
 resource "kubernetes_storage_class_v1" "synology-nfs-delete" {
   metadata {
     name = "synology-nfs-delete"
     annotations = {
-      "storageclass.kubernetes.io/is-default-class" = "true"
+      "storageclass.kubernetes.io/is-default-class" = "false"
     }
   }
   storage_provisioner = "csi.san.synology.com"
