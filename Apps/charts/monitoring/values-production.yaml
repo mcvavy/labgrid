@@ -165,4 +165,4 @@ loki:
 # Tempo values #
 ###############################
 alloy:
-  enabled: true
+  enabled: false

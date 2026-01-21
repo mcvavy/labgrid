@@ -30,7 +30,7 @@ dependencies:
     version: 6.49.0
     repository: https://grafana.github.io/helm-charts
   - name: alloy
-    enabled: true
+    enabled: false
     version: 1.5.1
     repository: https://grafana.github.io/helm-charts
   - name: kube-prometheus-stack
