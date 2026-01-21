@@ -55,7 +55,7 @@ kube-prometheus-stack:
             accessModes: ["ReadWriteOnce"]
             resources:
               requests:
-                storage: 10Gi
+                storage: 50Gi
     ingress:
       enabled: true
       hosts:
@@ -118,7 +118,7 @@ loki:
       storageClass: synology-iscsi-delete-wffc
       accessModes:
         - ReadWriteOnce
-      size: 10Gi
+      size: 50Gi
 
   # Component replicas (0 when using SingleBinary mode)
   write:
@@ -160,3 +160,9 @@ loki:
           index:
             prefix: index_
             period: 24h
+
+###############################
+# Tempo values #
+###############################
+alloy:
+  enabled: true
