@@ -32,13 +32,14 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 
 ![Labgrid GitOps Diagram](Documentation/images/labgrid_gitops.png)
 
-### Core Components
+## Core Components
 
-- **Production Clusters**:
-  - 10-node High Availability K3S cluster
-  - 3 X HP ELITEDESK 800 G2 Intel Core i7 - control plane nodes
-  - 6 X HP ELITEDESK 800 G2 Intel Core i7 - worker nodes
-  - kubeadm-based cluster on Proxmox for keeping up to date with Kubernetes certification exam curriculum
+### Labgrid Home Clusters (Staging)
+
+- 10-node High Availability K3S cluster
+- 3 X HP ELITEDESK 800 G2 Intel Core i7 - control plane nodes
+- 6 X HP ELITEDESK 800 G2 Intel Core i7 - worker nodes
+- kubeadm-based cluster on Proxmox for keeping up to date with Kubernetes certification exam curriculum
 - **Database Layer**: PostgreSQL clusters managed by CloudNativePG
 - **Storage**: Synology NAS integration via CSI driver
 - **Networking**: Kube-vip, nginx, wireguard in addition to Kubernetes networking.
@@ -46,7 +47,54 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **Monitoring**: Prometheus & Grafana stack
 - **CI/CD**: GitHub Actions for automation
 
-### Applications
+### Labgrid Hetzner Cluster (Production)
+
+#### Hetzner Cloud infrastructure (infra-kube-hetzner)
+
+- Private network, subnet, and Hetzner Cloud Load Balancers
+- Control plane nodepool (k3s servers) and fixed agent nodepool
+- Autoscaler nodepool (dynamically scaled worker nodes)
+- SSH key management for provisioning and maintenance
+
+#### Kubernetes cluster (k3s on Hetzner Cloud)
+
+- kube-hetzner/kube-hetzner/hcloud Terraform module for cluster lifecycle
+- Cilium CNI for networking, eBPF dataplane, and Hubble observability
+- Hetzner Cloud Controller Manager (CCM) for LoadBalancer and node integration
+- Hetzner CSI driver for persistent volumes
+- Automatic k3s and OS upgrades via the kube-hetzner module
+
+#### Ingress and Gateway API
+
+- NGINX Ingress Controller (from kube-hetzner) for classic Ingress resources
+- NGINX Gateway Fabric (NGF) for Gateway API (GatewayClass, Gateway, HTTPRoute)
+- Gateway API CRDs installed explicitly (v1.4.x standard install)
+
+#### Certificates and DNS
+
+- cert-manager Helm release (CRDs installed, HTTP‑01 enabled)
+- ClusterIssuers for Let’s Encrypt staging and production
+- Cloudflare DNS integration for tranzr domains (API token secret in cluster)
+
+#### Secrets and external configuration
+
+- External Secrets Operator (ESO) with CRDs installed
+- Integration with Azure Key Vault for application secrets
+- Kubernetes Secret resources for Cloudflare and Azure credentials
+
+#### Data and stateful services
+
+- CloudNativePG operator for PostgreSQL clusters on Kubernetes
+- Persistent storage via Hetzner CSI volumes
+
+#### Terraform project layout
+
+- infra-kube-hetzner/: Hetzner Cloud infra + k3s cluster
+- crds/: cluster-wide CRDs and operators (cert-manager, ESO, CloudNativePG, Gateway API)
+- resources/: app-facing Kubernetes resources (namespaces, issuers, secrets, ingress/gateway configuration, etc.)
+- Remote Terraform state stored in Azure Storage (per layer) and orchestrated via GitHub Actions CI/CD
+
+### Applications run on the clusters
 
 - **n8n**: Workflow automation platform
 - **Vikunja**: Task management and to-do list application
