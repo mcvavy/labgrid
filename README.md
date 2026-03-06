@@ -24,14 +24,17 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - Synology DS1522+
 - Raspberry Pi 4 8GB RAM + 240GB NVMe M.2 SSD + Argon ONE casing
 
-
 ### Labgrid Network Diagram
 
 ![Labgrid Network Diagram](Documentation/images/labgrid_network.png)
 
+### Labgrid GitOps and Continous Deployment
+
+![Labgrid GitOps Diagram](Documentation/images/labgrid_gitops.png)
+
 ### Core Components
 
-- **Production Clusters**: 
+- **Production Clusters**:
   - 10-node High Availability K3S cluster
   - 3 X HP ELITEDESK 800 G2 Intel Core i7 - control plane nodes
   - 6 X HP ELITEDESK 800 G2 Intel Core i7 - worker nodes
@@ -48,8 +51,8 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - **n8n**: Workflow automation platform
 - **Vikunja**: Task management and to-do list application
 - **Linkding**: Bookmark manager for organizing web links
-- **IAM**: Identity and access management solution, providing OIDC authentication for cluster  and application accesses powered by Keycloak, PostgreSQL & CloudNativePG
-- **pgAdmin 4**: A web based administration tool for the PostgreSQL database 
+- **IAM**: Identity and access management solution, providing OIDC authentication for cluster and application accesses powered by Keycloak, PostgreSQL & CloudNativePG
+- **pgAdmin 4**: A web based administration tool for the PostgreSQL database
 - **Trilium Next**: Hierarchical note-taking application with advanced features
 - **Home Assistant**: Open-source home automation platform for smart home integration
 - **Pi-hole**: Network-wide DNS sinkhole and ad blocker
@@ -67,18 +70,17 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 
 Everything needed to run my clusters & deploy my applications
 
-| Component | Description |
-|-----------|-------------|
-| ![K3s](https://img.shields.io/badge/K3s-FFC107?style=for-the-badge&logo=kubernetes&logoColor=black) | Lightweight Kubernetes distribution powering my 10-node production cluster |
-| ![Kubeadm](https://img.shields.io/badge/Kubeadm-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white) | Standard Kubernetes installation tool for my CKA practice cluster on Proxmox |
-| ![CloudNativePG](https://img.shields.io/badge/CloudNativePG-336791?style=for-the-badge&logo=postgresql&logoColor=white) | Database operator for running PostgreSQL clusters with high availability |
-| ![Synology](https://img.shields.io/badge/Synology-1A1A1A?style=for-the-badge&logo=synology&logoColor=white) | NAS storage with CSI driver for persistent volume provisioning |
-| ![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white) | Cloud platform for Key Vault, networking, and blob storage |
-| ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white) | Monitoring system for metrics collection and alerting |
-| ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white) | Visualization platform for infrastructure and application metrics |
-| ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white) | Primary Infrastructure as Code tool for managing all infrastructure components |
-| ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) | Version control and CI/CD platform for GitOps workflows |
-
+| Component                                                                                                               | Description                                                                    |
+| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| ![K3s](https://img.shields.io/badge/K3s-FFC107?style=for-the-badge&logo=kubernetes&logoColor=black)                     | Lightweight Kubernetes distribution powering my 10-node production cluster     |
+| ![Kubeadm](https://img.shields.io/badge/Kubeadm-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)             | Standard Kubernetes installation tool for my CKA practice cluster on Proxmox   |
+| ![CloudNativePG](https://img.shields.io/badge/CloudNativePG-336791?style=for-the-badge&logo=postgresql&logoColor=white) | Database operator for running PostgreSQL clusters with high availability       |
+| ![Synology](https://img.shields.io/badge/Synology-1A1A1A?style=for-the-badge&logo=synology&logoColor=white)             | NAS storage with CSI driver for persistent volume provisioning                 |
+| ![Azure](https://img.shields.io/badge/Azure-0078D4?style=for-the-badge&logo=microsoftazure&logoColor=white)             | Cloud platform for Key Vault, networking, and blob storage                     |
+| ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)       | Monitoring system for metrics collection and alerting                          |
+| ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)                | Visualization platform for infrastructure and application metrics              |
+| ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)          | Primary Infrastructure as Code tool for managing all infrastructure components |
+| ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)                   | Version control and CI/CD platform for GitOps workflows                        |
 
 ### Storage
 
@@ -106,7 +108,6 @@ Everything needed to run my clusters & deploy my applications
 - kubectl
 - terraform
 - helm
-
 
 ## 🔒 Security
 

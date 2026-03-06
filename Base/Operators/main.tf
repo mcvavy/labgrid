@@ -36,10 +36,10 @@ resource "helm_release" "external-secrets-operator" {
   chart      = local.externalSecretsSettings.name
   upgrade_install = true
 
-  set {
+  set = [{
     name  = "installCRDs"
     value = "true"
-  }
+  }]
 
   wait = true
 }
