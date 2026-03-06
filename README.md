@@ -49,50 +49,43 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 
 ### Labgrid Hetzner Cluster (Production)
 
-#### Hetzner Cloud infrastructure (infra-kube-hetzner)
+- #### Hetzner Cloud infrastructure (infra-kube-hetzner)
+  - Private network, subnet, and Hetzner Cloud Load Balancers
+  - Control plane nodepool (k3s servers) and fixed agent nodepool
+  - Autoscaler nodepool (dynamically scaled worker nodes)
+  - SSH key management for provisioning and maintenance
 
-- Private network, subnet, and Hetzner Cloud Load Balancers
-- Control plane nodepool (k3s servers) and fixed agent nodepool
-- Autoscaler nodepool (dynamically scaled worker nodes)
-- SSH key management for provisioning and maintenance
+- #### Kubernetes cluster (k3s on Hetzner Cloud)
+  - kube-hetzner/kube-hetzner/hcloud Terraform module for cluster lifecycle
+  - Cilium CNI for networking, eBPF dataplane, and Hubble observability
+  - Hetzner Cloud Controller Manager (CCM) for LoadBalancer and node integration
+  - Hetzner CSI driver for persistent volumes
+  - Automatic k3s and OS upgrades via the kube-hetzner module
 
-#### Kubernetes cluster (k3s on Hetzner Cloud)
+- #### Ingress and Gateway API
+  - NGINX Ingress Controller (from kube-hetzner) for classic Ingress resources
+  - NGINX Gateway Fabric (NGF) for Gateway API (GatewayClass, Gateway, HTTPRoute)
+  - Gateway API CRDs installed explicitly (v1.4.x standard install)
 
-- kube-hetzner/kube-hetzner/hcloud Terraform module for cluster lifecycle
-- Cilium CNI for networking, eBPF dataplane, and Hubble observability
-- Hetzner Cloud Controller Manager (CCM) for LoadBalancer and node integration
-- Hetzner CSI driver for persistent volumes
-- Automatic k3s and OS upgrades via the kube-hetzner module
+- #### Certificates and DNS
+  - cert-manager Helm release (CRDs installed, HTTP‑01 enabled)
+  - ClusterIssuers for Let’s Encrypt staging and production
+  - Cloudflare DNS integration for tranzr domains (API token secret in cluster)
 
-#### Ingress and Gateway API
+- #### Secrets and external configuration
+  - External Secrets Operator (ESO) with CRDs installed
+  - Integration with Azure Key Vault for application secrets
+  - Kubernetes Secret resources for Cloudflare and Azure credentials
 
-- NGINX Ingress Controller (from kube-hetzner) for classic Ingress resources
-- NGINX Gateway Fabric (NGF) for Gateway API (GatewayClass, Gateway, HTTPRoute)
-- Gateway API CRDs installed explicitly (v1.4.x standard install)
+- #### Data and stateful services
+  - CloudNativePG operator for PostgreSQL clusters on Kubernetes
+  - Persistent storage via Hetzner CSI volumes
 
-#### Certificates and DNS
-
-- cert-manager Helm release (CRDs installed, HTTP‑01 enabled)
-- ClusterIssuers for Let’s Encrypt staging and production
-- Cloudflare DNS integration for tranzr domains (API token secret in cluster)
-
-#### Secrets and external configuration
-
-- External Secrets Operator (ESO) with CRDs installed
-- Integration with Azure Key Vault for application secrets
-- Kubernetes Secret resources for Cloudflare and Azure credentials
-
-#### Data and stateful services
-
-- CloudNativePG operator for PostgreSQL clusters on Kubernetes
-- Persistent storage via Hetzner CSI volumes
-
-#### Terraform project layout
-
-- infra-kube-hetzner/: Hetzner Cloud infra + k3s cluster
-- crds/: cluster-wide CRDs and operators (cert-manager, ESO, CloudNativePG, Gateway API)
-- resources/: app-facing Kubernetes resources (namespaces, issuers, secrets, ingress/gateway configuration, etc.)
-- Remote Terraform state stored in Azure Storage (per layer) and orchestrated via GitHub Actions CI/CD
+- #### Terraform project layout
+  - infra-kube-hetzner/: Hetzner Cloud infra + k3s cluster
+  - crds/: cluster-wide CRDs and operators (cert-manager, ESO, CloudNativePG, Gateway API)
+  - resources/: app-facing Kubernetes resources (namespaces, issuers, secrets, ingress/gateway configuration, etc.)
+  - Remote Terraform state stored in Azure Storage (per layer) and orchestrated via GitHub Actions CI/CD
 
 ### Applications run on the clusters
 
