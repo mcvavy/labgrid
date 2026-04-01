@@ -14,7 +14,7 @@ terraform {
 
     helm = {
         source  = "hashicorp/helm"
-        version = "2.16.1"
+        version = "3.1.1"
     }
   }
 

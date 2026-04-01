@@ -1,5 +1,5 @@
 terraform {
-    required_version = ">= 1.0.0"
+    # required_version = ">= 1.0.0"
     required_providers {
 
     azurerm = {
@@ -14,7 +14,7 @@ terraform {
 
     helm = {
         source  = "hashicorp/helm"
-        version = "2.16.1"
+        version = "3.1.1"
     }
 
     kubectl = {

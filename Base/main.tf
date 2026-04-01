@@ -412,7 +412,7 @@ resource "kubernetes_manifest" "azure-kv-cluster-store" {
   depends_on = [kubernetes_secret_v1.azure-secret-sp-secret]
 
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
+    apiVersion = "external-secrets.io/v1"
     kind       = "ClusterSecretStore"
     metadata = {
       name = "azure-kv-cluster-store"
@@ -456,7 +456,7 @@ resource "kubernetes_manifest" "pg-admin-password" {
   depends_on = [ kubernetes_manifest.pg-admin-namespace ]
 
   manifest = {
-    apiVersion = "external-secrets.io/v1beta1"
+    apiVersion = "external-secrets.io/v1"
     kind       = "ExternalSecret"
     metadata = {
       name = "pg-admin-password"

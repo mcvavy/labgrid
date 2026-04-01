@@ -27,19 +27,19 @@ resource "helm_release" "cert_manager" {
   timeout = 300
 }
 
-resource "helm_release" "external-secrets-operator" {
+resource "helm_release" "external_secrets_operator" {
   name             = local.externalSecretsSettings.name
   namespace        = local.externalSecretsSettings.namespace
   create_namespace = true
 
-  repository      = local.externalSecretsSettings.repository
-  chart           = local.externalSecretsSettings.name
-  upgrade_install = true
+  repository = local.externalSecretsSettings.repository
+  chart      = local.externalSecretsSettings.name
+  version    = local.externalSecretsSettings.chart_version
 
-  set {
+  set = [{
     name  = "installCRDs"
     value = "true"
-  }
+  }]
 
   wait = true
 }
