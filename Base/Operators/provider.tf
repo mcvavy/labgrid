@@ -70,7 +70,7 @@ data "external" "k8s_token" {
 
 # Helm provider using OIDC token
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host  = var.k8s_host
     token = data.external.k8s_token.result.token
   }

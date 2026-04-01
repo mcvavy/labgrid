@@ -1,20 +1,29 @@
 terraform {
-    required_version = ">= 1.0.0"
-    required_providers {
+  required_providers {
 
     argocd = {
-      source = "argoproj-labs/argocd"
+      source  = "argoproj-labs/argocd"
       version = "7.3.1"
     }
 
     azurerm = {
-        source  = "hashicorp/azurerm"
-        version = "~>4.0"
+      source  = "hashicorp/azurerm"
+      version = "~>4.0"
+    }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "2.33.0"
     }
 
     helm = {
-        source  = "hashicorp/helm"
-        version = "3.1.1"
+      source  = "hashicorp/helm"
+      version = "3.1.1"
+    }
+
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "1.19.0"
     }
   }
 
@@ -35,9 +44,13 @@ provider "azurerm" {
   }
 }
 
+provider "kubernetes" {
+  host  = var.k8s_host
+  token = var.k8s_token
+}
+
 provider "helm" {
-  kubernetes {
-    # config_path = "~/.kube/config" # Update with your kubeconfig path
+  kubernetes = {
     host  = var.k8s_host
     token = var.k8s_token
   }
