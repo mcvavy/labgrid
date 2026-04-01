@@ -408,94 +408,94 @@ resource "kubernetes_secret_v1" "azure-secret-sp-secret" {
   type = "Opaque"
 }
 
-# resource "kubernetes_manifest" "azure-kv-cluster-store" {
-#   depends_on = [kubernetes_secret_v1.azure-secret-sp-secret]
+resource "kubernetes_manifest" "azure-kv-cluster-store" {
+  depends_on = [kubernetes_secret_v1.azure-secret-sp-secret]
 
-#   manifest = {
-#     apiVersion = "external-secrets.io/v1"
-#     kind       = "ClusterSecretStore"
-#     metadata = {
-#       name = "azure-kv-cluster-store"
-#     }
-#     spec = {
-#       provider = {
-#         azurekv = {
-#           tenantId = var.azureServicePrincipalTenantId
-#           vaultUrl = var.azureKeyVaultUrl
-#           authSecretRef = {
-#             # points to the secret that contains
-#             # the azure service principal credentials
-#             clientId = {
-#               name = "azure-secret-sp-secret"
-#               key = "clientId"
-#               namespace = "default"
-#             }
-#             clientSecret = {
-#               name = "azure-secret-sp-secret"
-#               key = "clientSecret"
-#               namespace = "default"
-#             }
-#           }
-#         }
-#       }
-#     }
-#   }
-# }
+  manifest = {
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ClusterSecretStore"
+    metadata = {
+      name = "azure-kv-cluster-store"
+    }
+    spec = {
+      provider = {
+        azurekv = {
+          tenantId = var.azureServicePrincipalTenantId
+          vaultUrl = var.azureKeyVaultUrl
+          authSecretRef = {
+            # points to the secret that contains
+            # the azure service principal credentials
+            clientId = {
+              name      = "azure-secret-sp-secret"
+              key       = "clientId"
+              namespace = "default"
+            }
+            clientSecret = {
+              name      = "azure-secret-sp-secret"
+              key       = "clientSecret"
+              namespace = "default"
+            }
+          }
+        }
+      }
+    }
+  }
+}
 
-# resource "kubernetes_manifest" "pg-admin-namespace" {
-#   manifest = {
-#     apiVersion = "v1"
-#     kind       = "Namespace"
-#     metadata = {
-#       name = local.pgAdminSettings.namespace
-#     }
-#   }
-# }
+resource "kubernetes_manifest" "pg-admin-namespace" {
+  manifest = {
+    apiVersion = "v1"
+    kind       = "Namespace"
+    metadata = {
+      name = local.pgAdminSettings.namespace
+    }
+  }
+}
 
-# resource "kubernetes_manifest" "pg-admin-password" {
-#   depends_on = [ kubernetes_manifest.pg-admin-namespace ]
+resource "kubernetes_manifest" "pg-admin-password" {
+  depends_on = [kubernetes_manifest.pg-admin-namespace]
 
-#   manifest = {
-#     apiVersion = "external-secrets.io/v1"
-#     kind       = "ExternalSecret"
-#     metadata = {
-#       name = "pg-admin-password"
-#       namespace = kubernetes_manifest.pg-admin-namespace.manifest.metadata.name
-#     }
-#     spec = {
-#       secretStoreRef = {
-#         name = "azure-kv-cluster-store"
-#         kind = "ClusterSecretStore"
-#       }
-#       refreshInterval = "36h"
-#       target = {
-#         name     = "pg-admin-password-secret"
-#         template = {
-#           type = "kubernetes.io/basic-auth"
-#         }
-#       }
-#       data = [
-#         {
-#           secretKey = "password"
-#           remoteRef = {
-#             key = "pg-admin-password"
-#           }
-#         }
-#       ]
-#     }
-#   }
-# }
+  manifest = {
+    apiVersion = "external-secrets.io/v1"
+    kind       = "ExternalSecret"
+    metadata = {
+      name      = "pg-admin-password"
+      namespace = kubernetes_manifest.pg-admin-namespace.manifest.metadata.name
+    }
+    spec = {
+      secretStoreRef = {
+        name = "azure-kv-cluster-store"
+        kind = "ClusterSecretStore"
+      }
+      refreshInterval = "36h"
+      target = {
+        name = "pg-admin-password-secret"
+        template = {
+          type = "kubernetes.io/basic-auth"
+        }
+      }
+      data = [
+        {
+          secretKey = "password"
+          remoteRef = {
+            key = "pg-admin-password"
+          }
+        }
+      ]
+    }
+  }
+}
 
-# resource "helm_release" "pgadmin" {
-#   depends_on = [ kubernetes_manifest.pg-admin-password ]
+resource "helm_release" "pgadmin" {
+  depends_on = [kubernetes_manifest.pg-admin-password]
 
-#   name             = local.pgAdminSettings.name
-#   repository       = local.pgAdminSettings.repository
-#   chart            = local.pgAdminSettings.name
-#   namespace        = kubernetes_manifest.pg-admin-namespace.manifest.metadata.name
-#   version          = local.pgAdminSettings.chart_version
+  name       = local.pgAdminSettings.name
+  repository = local.pgAdminSettings.repository
+  chart      = local.pgAdminSettings.name
+  namespace  = kubernetes_manifest.pg-admin-namespace.manifest.metadata.name
+  version    = local.pgAdminSettings.chart_version
 
-#   values = [ 
-#     file("${path.module}/values/pgadmin/values.yaml") 
-#     ]
-# }
+  values = [
+    file("${path.module}/values/pgadmin/values.yaml")
+  ]
+}
