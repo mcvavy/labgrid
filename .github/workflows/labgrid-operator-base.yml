@@ -46,12 +46,11 @@ jobs:
             -d "client_id=github-actions" \
             -d "client_secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}" \
             -d "grant_type=client_credentials" | jq -r '.access_token')
-            echo "generated token is: $TOKEN"
             echo "OIDC_TOKEN=$TOKEN" >> $GITHUB_ENV
     
      - name: Verify Kubernetes Access
        run: |
-         curl -k -v -H "Authorization: Bearer $OIDC_TOKEN" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
+         curl -k -f -sS -o /dev/null -w "HTTP %{http_code}\n" -H "Authorization: Bearer $OIDC_TOKEN" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
 
      - name: Terraform Init
        working-directory: ./Base/Operators
@@ -64,20 +63,21 @@ jobs:
      - name: Terraform Plan
        working-directory: ./Base/Operators
        env:
-         TF_VAR_k8s_token: $OIDC_TOKEN
+         # GHA does not shell-expand $OIDC_TOKEN here; use env context
+         TF_VAR_k8s_token: ${{ env.OIDC_TOKEN }}
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
          TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
          TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
        run: |
           echo "Testing Kubernetes access..."
-          curl -k -H "Authorization: Bearer $TF_VAR_k8s_token" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
+          curl -k -f -sS -o /dev/null -w "HTTP %{http_code}\n" -H "Authorization: Bearer ${{ env.OIDC_TOKEN }}" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
           terraform plan
 
      - name: Terraform Apply
        working-directory: ./Base/Operators
        env:
-         TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_k8s_token: ${{ env.OIDC_TOKEN }}
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
          TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
@@ -125,12 +125,11 @@ jobs:
             -d "client_id=github-actions" \
             -d "client_secret=${{ secrets.KEYCLOAK_CLIENT_SECRET }}" \
             -d "grant_type=client_credentials" | jq -r '.access_token')
-            echo "generated token is: $TOKEN"
             echo "OIDC_TOKEN=$TOKEN" >> $GITHUB_ENV
     
      - name: Verify Kubernetes Access
        run: |
-         curl -k -v -H "Authorization: Bearer $OIDC_TOKEN" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
+         curl -k -f -sS -o /dev/null -w "HTTP %{http_code}\n" -H "Authorization: Bearer $OIDC_TOKEN" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
 
      - name: Terraform Init
        working-directory: ./Base
@@ -143,20 +142,20 @@ jobs:
      - name: Terraform Plan
        working-directory: ./Base
        env:
-         TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_k8s_token: ${{ env.OIDC_TOKEN }}
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
          TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}
          TF_VAR_keycloak_client_id: ${{ secrets.KEYCLOAK_CLIENT_ID }}
        run: |
           echo "Testing Kubernetes access..."
-          curl -k -H "Authorization: Bearer $TF_VAR_k8s_token" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
+          curl -k -f -sS -o /dev/null -w "HTTP %{http_code}\n" -H "Authorization: Bearer ${{ env.OIDC_TOKEN }}" ${{ secrets.K8S_API_SERVER }}/api/v1/namespaces/default
           terraform plan -var-file=variables.tfvars
 
      - name: Terraform Apply
        working-directory: ./Base
        env:
-         TF_VAR_k8s_token: $OIDC_TOKEN
+         TF_VAR_k8s_token: ${{ env.OIDC_TOKEN }}
          TF_VAR_k8s_host: ${{ secrets.K8S_API_SERVER }}
          TF_VAR_keycloak_issuer_url: ${{ secrets.KEYCLOAK_ISSUER_URL }}
          TF_VAR_keycloak_client_secret: ${{ secrets.KEYCLOAK_CLIENT_SECRET }}

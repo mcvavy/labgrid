@@ -423,8 +423,6 @@ resource "kubernetes_manifest" "azure-kv-cluster-store" {
           tenantId = var.azureServicePrincipalTenantId
           vaultUrl = var.azureKeyVaultUrl
           authSecretRef = {
-            # points to the secret that contains
-            # the azure service principal credentials
             clientId = {
               name      = "azure-secret-sp-secret"
               key       = "clientId"
@@ -453,7 +451,10 @@ resource "kubernetes_manifest" "pg-admin-namespace" {
 }
 
 resource "kubernetes_manifest" "pg-admin-password" {
-  depends_on = [kubernetes_manifest.pg-admin-namespace]
+  depends_on = [
+    kubernetes_manifest.pg-admin-namespace,
+    kubernetes_manifest.azure-kv-cluster-store,
+  ]
 
   manifest = {
     apiVersion = "external-secrets.io/v1"
