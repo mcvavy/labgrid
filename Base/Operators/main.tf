@@ -27,7 +27,7 @@ resource "helm_release" "cert_manager" {
   timeout = 300
 }
 
-resource "helm_release" "external_secrets_operator" {
+resource "helm_release" "external-secrets-operator" {
   name             = local.externalSecretsSettings.name
   namespace        = local.externalSecretsSettings.namespace
   create_namespace = true
