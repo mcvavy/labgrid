@@ -1,4 +1,5 @@
 redis:
+  enabled: false
   architecture: replication
 
   auth:
@@ -98,7 +99,6 @@ redis:
   tls:
     enabled: false
 
-
 # TLS Certificate Configuration (for cert-manager)
 tls:
   enabled: false
@@ -118,8 +118,8 @@ tls:
   privateKey:
     algorithm: "RSA"
     size: 2048
-  duration: "2160h"  # 90 days
-  renewBefore: "360h"  # 15 days
+  duration: "2160h" # 90 days
+  renewBefore: "360h" # 15 days
 
 # External Secrets for credentials
 externalSecretCredentials:
