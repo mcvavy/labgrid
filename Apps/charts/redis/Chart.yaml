@@ -1,14 +1,14 @@
 apiVersion: v2
 name: redis
-description: Standalone Redis master-replica with Sentinel for Labgrid infrastructure
+description: Standalone Redis platform service for Labgrid infrastructure
 type: application
 version: 0.1.0
-appVersion: "8.2.1"
+appVersion: "8.6.3"
 dependencies:
   - name: redis
-    enabled: false
-    version: 23.1.1
-    repository: oci://registry-1.docker.io/bitnamicharts
+    # 0.29.x currently fails Helm rendering with an upstream template EOF error.
+    version: 0.28.0
+    repository: oci://registry-1.docker.io/cloudpirates
 maintainers:
   - name: LabGrid Labs
     email: admin@labgrid.net

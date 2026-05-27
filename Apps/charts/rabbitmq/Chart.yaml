@@ -1,0 +1,13 @@
+apiVersion: v2
+name: rabbitmq
+description: Standalone RabbitMQ platform service for Labgrid infrastructure
+type: application
+version: 0.1.0
+appVersion: "4.2.2"
+dependencies:
+  - name: rabbitmq
+    version: 0.21.4
+    repository: oci://registry-1.docker.io/cloudpirates
+maintainers:
+  - name: LabGrid Labs
+    email: admin@labgrid.net

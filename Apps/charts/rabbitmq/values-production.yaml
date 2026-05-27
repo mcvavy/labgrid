@@ -1,4 +1,4 @@
-redis:
+rabbitmq:
   persistence:
     storageClass: synology-iscsi-delete-wffc
     size: 5Gi
