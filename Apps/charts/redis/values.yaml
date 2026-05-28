@@ -11,6 +11,11 @@ externalSecrets:
 
 redis:
   architecture: standalone
+  config:
+    content: |
+      # Redis configuration
+      bind * -::*
+      notify-keyspace-events Ex
   auth:
     enabled: true
     existingSecret: redis-credentials
