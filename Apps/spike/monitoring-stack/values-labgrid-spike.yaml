@@ -1,5 +1,5 @@
-# Production monitoring stack for labgrid (Argo app: monitoring → namespace monitoring-system).
-# Helm release name must be "monitoring" (ApplicationSet path basename).
+# Labgrid spike — install with release name "monitoring-spike" into namespace monitoring-spike.
+# Service DNS names below assume: helm upgrade --install monitoring-spike ...
 
 monitoringCredentials:
   enabled: true
@@ -17,18 +17,14 @@ monitoringCredentials:
       remoteRef:
         key: labgrid-grafana-admin-user
 
-# Alloy pipeline endpoints (release name: monitoring, namespace: monitoring-system)
 alloyEndpoints:
   clusterLabel: labgrid
-  lokiPushUrl: http://monitoring-loki-gateway.monitoring-system.svc.cluster.local/loki/api/v1/push
-  prometheusRemoteWriteUrl: http://kps-monitoring-prometheus.monitoring-system.svc.cluster.local:9090/api/v1/write
-  tempoOtlpEndpoint: http://monitoring-tempo.monitoring-system.svc.cluster.local:4317
+  lokiPushUrl: http://monitoring-spike-loki-gateway.monitoring-spike.svc.cluster.local/loki/api/v1/push
+  prometheusRemoteWriteUrl: http://kps-spike-prometheus.monitoring-spike.svc.cluster.local:9090/api/v1/write
+  tempoOtlpEndpoint: http://monitoring-spike-tempo.monitoring-spike.svc.cluster.local:4317
 
-###############################
-# kube-prometheus-stack (metrics + alerts; no Grafana pod)
-###############################
 kube-prometheus-stack:
-  fullnameOverride: kps-monitoring
+  fullnameOverride: kps-spike
 
   grafana:
     enabled: false
@@ -67,7 +63,7 @@ kube-prometheus-stack:
       enabled: true
       ingressClassName: nginx
       hosts:
-        - prometheus.labgrid.net
+        - prometheus-spike.labgrid.net
       paths:
         - /
       annotations:
@@ -90,7 +86,7 @@ kube-prometheus-stack:
       enabled: true
       ingressClassName: nginx
       hosts:
-        - alertmanager.labgrid.net
+        - alertmanager-spike.labgrid.net
       paths:
         - /
       annotations:
@@ -107,9 +103,10 @@ kube-prometheus-stack:
         cpu: 500m
         memory: 512Mi
 
-###############################
-# Standalone Grafana
-###############################
+  # Set true only after monitoring-system is removed (host port 9100 conflicts otherwise).
+  prometheus-node-exporter:
+    enabled: false
+
 grafana:
   replicas: 1
   admin:
@@ -137,7 +134,7 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - grafana.labgrid.net
+      - grafana-spike.labgrid.net
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-production
       nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
@@ -160,12 +157,12 @@ grafana:
           uid: prometheus
           access: proxy
           isDefault: true
-          url: http://kps-monitoring-prometheus.monitoring-system.svc.cluster.local:9090
+          url: http://kps-spike-prometheus.monitoring-spike.svc.cluster.local:9090
         - name: Loki
           type: loki
           uid: loki
           access: proxy
-          url: http://monitoring-loki-gateway.monitoring-system.svc.cluster.local
+          url: http://monitoring-spike-loki-gateway.monitoring-spike.svc.cluster.local
           jsonData:
             httpHeaderName1: X-Scope-OrgID
           secureJsonData:
@@ -174,7 +171,7 @@ grafana:
           type: tempo
           uid: tempo
           access: proxy
-          url: http://monitoring-tempo.monitoring-system.svc.cluster.local:3200
+          url: http://monitoring-spike-tempo.monitoring-spike.svc.cluster.local:3200
           jsonData:
             httpMethod: GET
             tracesToLogs:
@@ -186,9 +183,6 @@ grafana:
             nodeGraph:
               enabled: true
 
-###############################
-# Loki
-###############################
 loki:
   deploymentMode: SingleBinary
 
@@ -244,11 +238,8 @@ loki:
             prefix: index_
             period: 24h
 
-###############################
-# Tempo
-###############################
 tempo:
-  fullnameOverride: monitoring-tempo
+  fullnameOverride: monitoring-spike-tempo
 
   tempo:
     retention: 336h
@@ -270,11 +261,8 @@ tempo:
   serviceMonitor:
     enabled: true
     additionalLabels:
-      release: monitoring
+      release: monitoring-spike
 
-###############################
-# Grafana Alloy
-###############################
 alloy:
   enabled: true
 
@@ -284,7 +272,7 @@ alloy:
   alloy:
     configMap:
       create: false
-      name: monitoring-alloy
+      name: monitoring-spike-alloy
       key: config.alloy
 
   resources:
@@ -298,4 +286,4 @@ alloy:
   serviceMonitor:
     enabled: true
     additionalLabels:
-      release: monitoring
+      release: monitoring-spike

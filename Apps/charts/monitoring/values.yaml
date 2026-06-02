@@ -1,0 +1,18 @@
+# Defaults for local helm template/lint. Production uses values-production.yaml via Argo CD.
+
+monitoringCredentials:
+  enabled: false
+
+alloy:
+  enabled: false
+
+alloyEndpoints:
+  clusterLabel: labgrid
+  lokiPushUrl: http://monitoring-loki-gateway.monitoring-system.svc.cluster.local/loki/api/v1/push
+  prometheusRemoteWriteUrl: http://kps-monitoring-prometheus.monitoring-system.svc.cluster.local:9090/api/v1/write
+  tempoOtlpEndpoint: http://monitoring-tempo.monitoring-system.svc.cluster.local:4317
+
+kube-prometheus-stack:
+  grafana:
+    enabled: false
+    forceDeployDashboards: true

@@ -1,71 +1,43 @@
-## Monitoring Umbrella Chart (kube-prometheus-stack)
+## Monitoring umbrella chart (LGTM+P)
 
-This chart bundles the upstream `prometheus-community/kube-prometheus-stack` providing a full monitoring stack: Prometheus Operator, Prometheus, Alertmanager, Grafana, node exporter, kube-state-metrics and default recording/alerting rules.
+Production observability for labgrid (and Hetzner via `values-hetzner.yaml` when added):
 
-### Dependency
+| Component | Chart | Role |
+|-----------|-------|------|
+| **kube-prometheus-stack** | prometheus-community | Prometheus, Alertmanager, node-exporter, kube-state-metrics, dashboard ConfigMaps (`grafana.enabled: false`) |
+| **grafana** | grafana.github.io | **Standalone** Grafana UI |
+| **loki** | grafana.github.io | Log aggregation |
+| **tempo** | grafana.github.io | Distributed tracing (monolithic) |
+| **alloy** | grafana.github.io | DaemonSet: pod logs → Loki; OTLP → Tempo + Prometheus remote_write |
 
-Declared in `Chart.yaml`:
-
-```yaml
-dependencies:
-  - name: kube-prometheus-stack
-    version: 65.0.0
-    repository: https://prometheus-community.github.io/helm-charts
-```
-
-Update / vendor the dependency:
+### Dependencies
 
 ```bash
 helm dependency update Apps/charts/monitoring
 ```
 
-### Install
+### Argo CD
 
-```bash
-helm upgrade --install monitoring Apps/charts/monitoring -n monitoring --create-namespace
-```
+Deployed by `labgrid-production` ApplicationSet: app `monitoring` → namespace `monitoring-system`, values file `values-production.yaml`.
 
-### Key Overrides (`values.yaml`)
+**Helm release name must be `monitoring`** (matches ApplicationSet `{{path.basename}}`).
 
-- Retention: `kube-prometheus-stack.prometheus.prometheusSpec.retention` (default 15d here)
-- Prometheus storage size: `kube-prometheus-stack.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage`
-- Alertmanager storage: `kube-prometheus-stack.alertmanager.alertmanagerSpec.storage.volumeClaimTemplate.spec.resources.requests.storage`
-- Grafana persistence: `kube-prometheus-stack.grafana.persistence.size`
-- Enable/disable components by toggling their `enabled` flag.
+### Spike / migration
 
-### Adding Custom Scrape Jobs
+Validated in `Apps/spike/monitoring-stack` (`monitoring-spike` namespace). See spike README for install/teardown.
 
-Provide your own secret with scrape configs and reference via `kube-prometheus-stack.prometheus.prometheusSpec.additionalScrapeConfigs`. Example:
+### URLs (labgrid production)
 
-```yaml
-kube-prometheus-stack:
-  prometheus:
-    prometheusSpec:
-      additionalScrapeConfigs:
-        - job_name: custom-service
-          static_configs:
-            - targets: ["my-service.monitoring:8080"]
-```
+- Grafana: https://grafana.labgrid.net
+- Prometheus: https://prometheus.labgrid.net
+- Alertmanager: https://alertmanager.labgrid.net
 
-For larger configs, create a Secret and use `additionalScrapeConfigsSecret` (see upstream docs).
+### Alloy OTLP (in-cluster)
 
-### Security / Credentials
+Apps can send OTLP to Alloy DaemonSet pods on nodes, or a Service if added later:
 
-Change `kube-prometheus-stack.grafana.adminPassword` via a secure values override or ExternalSecret in production.
+- gRPC: `4317`, HTTP: `4318` on alloy pods in `monitoring-system`
 
 ### Upgrading
 
-Adjust dependency version and bump chart `version`, then run `helm dependency update`.
-
-### Disabling Grafana
-
-```yaml
-kube-prometheus-stack:
-  grafana:
-    enabled: false
-```
-
-### Removing Persistent Volumes
-
-Delete the `storageSpec` / `storage` sections or override with smaller ephemeral settings (not recommended for production).
-When changing dependency version bump chart `version` in `Chart.yaml` and run `helm dependency update` again.
+Bump dependency versions in `Chart.yaml`, run `helm dependency update`, bump chart `version`, merge to `main`.
