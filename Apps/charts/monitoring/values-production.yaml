@@ -17,6 +17,29 @@ monitoringCredentials:
       remoteRef:
         key: labgrid-grafana-admin-user
 
+# Opt-in Prometheus scraping (see README). Metrics from apps use OTLP → Alloy → remote_write.
+prometheusScrape:
+  label: prometheus-scrape
+  value: "true"
+
+# Alloy: skip infra namespaces; collect logs from deployed app namespaces only.
+alloyLogs:
+  namespaceDenylist:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - monitoring-system
+    - prometheus-system
+    - argocd
+    - cert-manager
+    - external-secrets
+    - metallb-system
+    - ingress-nginx
+    - synology-csi
+    - traefik
+    - cnpg-system
+    - dapr-system
+
 # Alloy pipeline endpoints (release name: monitoring, namespace: monitoring-system)
 alloyEndpoints:
   clusterLabel: labgrid
@@ -26,6 +49,7 @@ alloyEndpoints:
 
 ###############################
 # kube-prometheus-stack (metrics + alerts; no Grafana pod)
+# Cluster infra scraping disabled — app metrics via OTLP remote_write only.
 ###############################
 kube-prometheus-stack:
   fullnameOverride: kps-monitoring
@@ -34,19 +58,83 @@ kube-prometheus-stack:
     enabled: false
     forceDeployDashboards: true
 
+  kubeApiServer:
+    enabled: false
+  kubelet:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+  coreDns:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  nodeExporter:
+    enabled: false
+
   defaultRules:
     create: true
+    rules:
+      alertmanager: true
+      prometheus: true
+      prometheusOperator: true
+      general: true
+      configReloaders: true
+      kubePrometheusGeneral: true
+      kubelet: false
+      kubeApiserverAvailability: false
+      kubeApiserverBurnrate: false
+      kubeApiserverHistogram: false
+      kubeApiserverSlos: false
+      kubeControllerManager: false
+      kubeProxy: false
+      kubeSchedulerAlerting: false
+      kubeSchedulerRecording: false
+      kubeStateMetrics: false
+      kubernetesApps: false
+      kubernetesResources: false
+      kubernetesStorage: false
+      kubernetesSystem: false
+      k8sContainerCpuUsageSecondsTotal: false
+      k8sContainerMemoryCache: false
+      k8sContainerMemoryRss: false
+      k8sContainerMemorySwap: false
+      k8sContainerResource: false
+      k8sContainerMemoryWorkingSetBytes: false
+      k8sPodOwner: false
+      node: false
+      nodeExporterAlerting: false
+      nodeExporterRecording: false
+      network: false
+      etcd: false
 
   prometheus:
+    serviceMonitor:
+      selfMonitor: false
     prometheusSpec:
       replicas: 1
-      retention: 15d
-      scrapeInterval: 30s
-      evaluationInterval: 30s
+      retention: 7d
+      retentionSize: 45GiB
+      scrapeInterval: 60s
+      evaluationInterval: 60s
       enableRemoteWriteReceiver: true
-      serviceMonitorSelector: {}
-      podMonitorSelector: {}
-      ruleSelector: {}
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelector:
+        matchLabels:
+          prometheus-scrape: "true"
+      podMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelector:
+        matchLabels:
+          prometheus-scrape: "true"
+      ruleSelectorNilUsesHelmValues: false
+      ruleSelector:
+        matchLabels:
+          release: monitoring
       resources:
         requests:
           cpu: 200m
@@ -54,6 +142,17 @@ kube-prometheus-stack:
         limits:
           cpu: 2000m
           memory: 4Gi
+      # Allow long WAL replay after storage recovery (operator merges by container name).
+      containers:
+        - name: prometheus
+          startupProbe:
+            failureThreshold: 120
+            periodSeconds: 15
+            timeoutSeconds: 5
+            httpGet:
+              path: /-/ready
+              port: http-web
+              scheme: HTTP
       storageSpec:
         volumeClaimTemplate:
           spec:
@@ -62,7 +161,7 @@ kube-prometheus-stack:
               - ReadWriteOnce
             resources:
               requests:
-                storage: 50Gi
+                storage: 80Gi
     ingress:
       enabled: true
       ingressClassName: nginx
@@ -76,6 +175,8 @@ kube-prometheus-stack:
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   alertmanager:
+    serviceMonitor:
+      selfMonitor: false
     alertmanagerSpec:
       replicas: 1
       retention: 120h
@@ -99,6 +200,8 @@ kube-prometheus-stack:
         nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
   prometheusOperator:
+    serviceMonitor:
+      selfMonitor: false
     resources:
       requests:
         cpu: 100m
@@ -228,7 +331,11 @@ loki:
     commonConfig:
       replication_factor: 1
     limits_config:
-      retention_period: 744h
+      retention_period: 168h
+      ingestion_rate_mb: 8
+      ingestion_burst_size_mb: 16
+      per_stream_rate_limit: 5MB
+      per_stream_rate_limit_burst: 15MB
     storage:
       type: filesystem
       filesystem:
@@ -251,7 +358,7 @@ tempo:
   fullnameOverride: monitoring-tempo
 
   tempo:
-    retention: 336h
+    retention: 168h
     resources:
       requests:
         cpu: 200m
@@ -268,9 +375,7 @@ tempo:
     size: 30Gi
 
   serviceMonitor:
-    enabled: true
-    additionalLabels:
-      release: monitoring
+    enabled: false
 
 ###############################
 # Grafana Alloy
@@ -305,6 +410,4 @@ alloy:
       memory: 1Gi
 
   serviceMonitor:
-    enabled: true
-    additionalLabels:
-      release: monitoring
+    enabled: false

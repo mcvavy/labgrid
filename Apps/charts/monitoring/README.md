@@ -4,7 +4,7 @@ Production observability for the **labgrid home cluster** (Argo CD). Hetzner Tra
 
 | Component | Chart | Role |
 |-----------|-------|------|
-| **kube-prometheus-stack** | prometheus-community | Prometheus, Alertmanager, node-exporter, kube-state-metrics, dashboard ConfigMaps (`grafana.enabled: false`) |
+| **kube-prometheus-stack** | prometheus-community | Prometheus + Alertmanager only (no kubelet/kube-state-metrics/node-exporter); dashboard ConfigMaps (`grafana.enabled: false`) |
 | **grafana** | grafana.github.io | **Standalone** Grafana UI |
 | **loki** | grafana.github.io | Log aggregation |
 | **tempo** | grafana.github.io | Distributed tracing (monolithic) |
@@ -49,6 +49,21 @@ Validated in `Apps/spike/monitoring-stack` (`monitoring-spike` namespace). See s
 - Prometheus: https://prometheus.tranzr.co.uk
 - Alertmanager: https://alertmanager.tranzr.co.uk
 
+### Metrics strategy (app-focused)
+
+**Disabled (cluster infra):** kubelet/cAdvisor, kube-state-metrics, node-exporter, control-plane ServiceMonitors, and related alert rules. This avoids high-cardinality per-container series filling the Prometheus PVC.
+
+**Enabled:**
+
+- **OTLP → Alloy → Prometheus remote_write** — primary path for application metrics (OpenTelemetry).
+- **Opt-in ServiceMonitors** — label `prometheus-scrape: "true"` on any `ServiceMonitor` / `PodMonitor` you add to app charts.
+
+Prometheus retention: **7d**, cap **45GiB**, PVC **80Gi** (production). Scrape interval **60s**.
+
+### Logs strategy
+
+Alloy collects pod logs from all namespaces **except** the infra denylist in `alloyLogs.namespaceDenylist` (`kube-system`, `monitoring-system`, `argocd`, etc.). Loki retention **7d** with ingestion rate limits.
+
 ### Alloy OTLP (in-cluster)
 
 Application pods send OTLP to the Alloy Kubernetes Service (ports exposed via `alloy.alloy.extraPorts`):
@@ -67,3 +82,24 @@ Set on Tranzr workloads (see tranzr-gitops `observability` values):
 2. Run `helm dependency update Apps/charts/monitoring`
 3. Bump chart `version` and merge to `main`
 4. Argo sync; align hetzner-k3s `monitoring-*.tf` chart versions if Hetzner should stay in step
+
+### Prometheus PVC recovery
+
+If Prometheus was crash-looping on a full PVC, after sync you may still need to expand the existing claim (`kubectl edit pvc …` → `80Gi`) or clear old TSDB data once. New WAL volume should stay small with infra scraping disabled.
+
+### Opt-in scrape example (app chart)
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: my-app
+  labels:
+    prometheus-scrape: "true"
+spec:
+  selector:
+    matchLabels:
+      app: my-app
+  endpoints:
+    - port: metrics
+```

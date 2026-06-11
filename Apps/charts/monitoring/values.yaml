@@ -3,6 +3,29 @@
 monitoringCredentials:
   enabled: false
 
+# Opt-in Prometheus scraping: ServiceMonitors/PodMonitors must carry this label.
+prometheusScrape:
+  label: prometheus-scrape
+  value: "true"
+
+# Alloy log collection: drop infra namespaces (apps in *-system and app namespaces are kept).
+alloyLogs:
+  namespaceDenylist:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - monitoring-system
+    - prometheus-system
+    - argocd
+    - cert-manager
+    - external-secrets
+    - metallb-system
+    - ingress-nginx
+    - synology-csi
+    - traefik
+    - cnpg-system
+    - dapr-system
+
 alloy:
   enabled: false
   alloy:
@@ -23,6 +46,91 @@ alloyEndpoints:
   tempoOtlpEndpoint: http://monitoring-tempo.monitoring-system.svc.cluster.local:4317
 
 kube-prometheus-stack:
+  fullnameOverride: kps-monitoring
+
   grafana:
     enabled: false
     forceDeployDashboards: true
+
+  kubeApiServer:
+    enabled: false
+  kubelet:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+  coreDns:
+    enabled: false
+  kubeStateMetrics:
+    enabled: false
+  nodeExporter:
+    enabled: false
+
+  defaultRules:
+    create: true
+    rules:
+      alertmanager: true
+      prometheus: true
+      prometheusOperator: true
+      general: true
+      configReloaders: true
+      kubePrometheusGeneral: true
+      kubelet: false
+      kubeApiserverAvailability: false
+      kubeApiserverBurnrate: false
+      kubeApiserverHistogram: false
+      kubeApiserverSlos: false
+      kubeControllerManager: false
+      kubeProxy: false
+      kubeSchedulerAlerting: false
+      kubeSchedulerRecording: false
+      kubeStateMetrics: false
+      kubernetesApps: false
+      kubernetesResources: false
+      kubernetesStorage: false
+      kubernetesSystem: false
+      k8sContainerCpuUsageSecondsTotal: false
+      k8sContainerMemoryCache: false
+      k8sContainerMemoryRss: false
+      k8sContainerMemorySwap: false
+      k8sContainerResource: false
+      k8sContainerMemoryWorkingSetBytes: false
+      k8sPodOwner: false
+      node: false
+      nodeExporterAlerting: false
+      nodeExporterRecording: false
+      network: false
+      etcd: false
+
+  prometheus:
+    prometheusSpec:
+      retention: 7d
+      retentionSize: 45GiB
+      enableRemoteWriteReceiver: true
+      serviceMonitorSelectorNilUsesHelmValues: false
+      serviceMonitorSelector:
+        matchLabels:
+          prometheus-scrape: "true"
+      podMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelector:
+        matchLabels:
+          prometheus-scrape: "true"
+      ruleSelectorNilUsesHelmValues: false
+      ruleSelector:
+        matchLabels:
+          release: monitoring
+    serviceMonitor:
+      selfMonitor: false
+
+  alertmanager:
+    serviceMonitor:
+      selfMonitor: false
+
+  prometheusOperator:
+    serviceMonitor:
+      selfMonitor: false
