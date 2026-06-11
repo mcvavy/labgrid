@@ -76,6 +76,7 @@ All 16 AKV keys in the table above must exist before pods become healthy. Common
 
 - `supabase-dashboard` → `SecretSyncedError` — create `labgrid-supabase-dashboard-username` and `labgrid-supabase-dashboard-password` (blocks Kong and Studio).
 - MinIO / storage `CreateContainerConfigError` on `supabase-s3` key `password` — ensure the chart includes the s3 `password` mapping (from `labgrid-supabase-minio-password`).
+- MinIO `CrashLoopBackOff` with `file access denied` on `/data` — Chainguard MinIO runs as UID 65532; set `deployment.minio.podSecurityContext.fsGroup: 65532` (included in `values.yaml`) so Synology PVCs are group-writable.
 
 ## Tranzr app integration
 

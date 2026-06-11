@@ -36,6 +36,13 @@ supabase:
       enabled: false
     minio:
       enabled: true
+      # Chainguard MinIO (cgr.dev/chainguard/minio) runs as UID/GID 65532; Synology PVCs
+      # mount as root:root without fsGroup, causing "file access denied" on /data.
+      podSecurityContext:
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        runAsNonRoot: true
     studio:
       enabled: true
 
