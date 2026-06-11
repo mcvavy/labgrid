@@ -64,12 +64,18 @@ Map `JWT_SECRET` → `labgrid-supabase-jwt-secret`, `ANON_KEY` → `labgrid-supa
 | `labgrid-supabase-minio-password` | `supabase-minio` | `password` | `generate-keys.sh` → `MINIO_ROOT_PASSWORD` |
 | `labgrid-supabase-s3-key-id` | `supabase-s3` | `keyId` | same as minio user |
 | `labgrid-supabase-s3-access-key` | `supabase-s3` | `accessKey` | same as minio password |
+| `labgrid-supabase-minio-password` | `supabase-s3` | `password` | same value again — upstream chart reads MinIO root password from the s3 secret when `secret.s3.secretRef` is set |
 
 Verify sync after deploy:
 
 ```bash
 kubectl get externalsecret -n supabase-system
 ```
+
+All 16 AKV keys in the table above must exist before pods become healthy. Common failures:
+
+- `supabase-dashboard` → `SecretSyncedError` — create `labgrid-supabase-dashboard-username` and `labgrid-supabase-dashboard-password` (blocks Kong and Studio).
+- MinIO / storage `CreateContainerConfigError` on `supabase-s3` key `password` — ensure the chart includes the s3 `password` mapping (from `labgrid-supabase-minio-password`).
 
 ## Tranzr app integration
 
