@@ -1,0 +1,62 @@
+# Production — Argo app `supabase` → namespace `supabase-system`.
+# Release name must be `supabase` (ApplicationSet path basename).
+
+supabase:
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-production
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    hosts:
+      - host: supabase.labgrid.net
+        paths:
+          - path: /
+            pathType: Prefix
+
+  environment:
+    auth:
+      API_EXTERNAL_URL: https://supabase.labgrid.net
+      GOTRUE_SITE_URL: https://supabase.labgrid.net
+    studio:
+      SUPABASE_PUBLIC_URL: https://supabase.labgrid.net
+
+  deployment:
+    db:
+      resources:
+        requests:
+          cpu: "1"
+          memory: 2Gi
+        limits:
+          memory: 4Gi
+    kong:
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+    auth:
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+    rest:
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+    storage:
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+    realtime:
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+    minio:
+      resources:
+        requests:
+          cpu: 500m
+          memory: 512Mi

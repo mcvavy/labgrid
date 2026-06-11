@@ -1,0 +1,65 @@
+# Labgrid Supabase wrapper — defaults shared by spike and production overrides.
+# Subchart values are passed under the `supabase:` key.
+
+externalSecrets:
+  enabled: true
+  refreshInterval: "1h"
+  secretStoreRef:
+    name: azure-kv-cluster-store
+    kind: ClusterSecretStore
+
+supabase:
+  secret:
+    jwt:
+      secretRef: supabase-jwt
+    db:
+      secretRef: supabase-db
+      database: postgres
+    # K8s secret supabase-smtp ← ESO syncs AKV acs-smtp-username / acs-smtp-password (shared with Chatwoot).
+    smtp:
+      secretRef: supabase-smtp
+    dashboard:
+      secretRef: supabase-dashboard
+    analytics:
+      secretRef: supabase-analytics
+    realtime:
+      secretRef: supabase-realtime
+    meta:
+      secretRef: supabase-meta
+    minio:
+      secretRef: supabase-minio
+    s3:
+      secretRef: supabase-s3
+
+  deployment:
+    vector:
+      enabled: false
+    minio:
+      enabled: true
+    studio:
+      enabled: true
+
+  environment:
+    auth:
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      GOTRUE_SMTP_HOST: smtp.azurecomm.net
+      GOTRUE_SMTP_PORT: "587"
+      GOTRUE_SMTP_ADMIN_EMAIL: testing@tranzrmoves.com
+      GOTRUE_SMTP_SENDER_NAME: Tranzr Moves
+    storage:
+      GLOBAL_S3_BUCKET: supabase
+
+  persistence:
+    db:
+      enabled: true
+      storageClassName: synology-iscsi-delete
+      size: 50Gi
+    minio:
+      enabled: true
+      storageClassName: synology-iscsi-delete-wffc
+      size: 20Gi
+    storage:
+      enabled: true
+      storageClassName: synology-iscsi-delete-wffc
+      size: 10Gi

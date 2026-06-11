@@ -1,0 +1,15 @@
+apiVersion: v2
+name: supabase
+description: Self-hosted Supabase for Labgrid (community supabase-kubernetes chart).
+type: application
+version: 0.1.0
+appVersion: "0.5.6"
+maintainers:
+  - name: LabGrid Labs
+    email: admin@labgrid.net
+    url: blog.labgrid.net
+
+dependencies:
+  - name: supabase
+    version: 0.5.6
+    repository: https://supabase-community.github.io/supabase-kubernetes
