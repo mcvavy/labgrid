@@ -73,7 +73,18 @@ Copy each value into Key Vault manually (`labgrid` vault):
 | `JWT_KEYS` | `labgrid-supabase-jwt-keys` |
 | `JWT_JWKS` | `labgrid-supabase-jwt-jwks` |
 
-`JWT_KEYS` / `JWT_JWKS` are JSON strings — paste the full value (including `[` / `{`). Ignore the docker-compose “uncomment manually” warning; Kubernetes gets these via Helm/ESO, not docker-compose. After deploy, JWKS at `https://supabase.labgrid.net/auth/v1/.well-known/jwks.json` should list the EC public key plus the legacy HS256 key.
+**Do not swap `JWT_KEYS` and `JWT_JWKS`** — they look similar but differ:
+
+| Variable | Must start with | Contains | Used by |
+|----------|-----------------|----------|---------|
+| `JWT_KEYS` | `[` (JSON **array**) | EC private key with `"d"` and `"key_ops":["sign","verify"]` | Auth `GOTRUE_JWT_KEYS` |
+| `JWT_JWKS` | `{"keys":` (JSON **object**) | EC public key only (`"verify"`) + HS256 `oct` key | PostgREST / Realtime / Storage |
+
+Pasting `JWT_JWKS` into `labgrid-supabase-jwt-keys` causes auth `CrashLoopBackOff`:
+
+`json: cannot unmarshal object into Go value of type []json.RawMessage`
+
+Ignore the docker-compose “uncomment manually” warning. After deploy, JWKS at `https://supabase.labgrid.net/auth/v1/.well-known/jwks.json` should list the EC public key plus the legacy HS256 key.
 
 | AKV key | K8s secret | Key | Generate |
 |---------|------------|-----|----------|
@@ -110,7 +121,16 @@ All 21 AKV keys in the table above must exist before pods become healthy. Common
 
 - `supabase-dashboard` → `SecretSyncedError` — create `labgrid-supabase-dashboard-password` in AKV (username is `externalSecrets.dashboard.username` in values).
 - `supabase-apikey` → `SecretSyncedError` — run official [`add-new-auth-keys.sh`](https://github.com/supabase/supabase/blob/master/docker/utils/add-new-auth-keys.sh) and create the six `labgrid-supabase-*` AKV entries above.
+- Auth `CrashLoopBackOff` / `cannot unmarshal object` on `GOTRUE_JWT_KEYS` — `labgrid-supabase-jwt-keys` has `JWT_JWKS` pasted by mistake; it must be the `JWT_KEYS` line starting with `[`.
 - JWKS returns `{"keys":[]}` — `GOTRUE_JWT_KEYS` not configured; deploy `supabase-apikey` secret and restart auth.
+- Well-known `401` / `404` — use the full path below (not Studio root). Kong exposes JWKS and OIDC discovery without an API key only under `/auth/v1/`:
+
+| URL | Expected |
+|-----|----------|
+| `https://supabase.labgrid.net/auth/v1/.well-known/jwks.json` | `200` + `keys` array (ES256 after asymmetric migration) |
+| `https://supabase.labgrid.net/auth/v1/.well-known/openid-configuration` | `200` + `issuer` / `jwks_uri` (patched Kong route in this chart) |
+| `https://supabase.labgrid.net/.well-known/jwks.json` | `401` — wrong path (hits Studio) |
+| `https://supabase.labgrid.net/auth/v1/.well-known/` | `401` — path must include `jwks.json` or `openid-configuration` |
 - MinIO / storage `CreateContainerConfigError` on `supabase-s3` key `password` — ensure the chart includes the s3 `password` mapping (from `labgrid-supabase-minio-password`).
 - MinIO `CrashLoopBackOff` with `file access denied` on `/data` — Chainguard MinIO runs as UID 65532; set `deployment.minio.podSecurityContext.fsGroup: 65532` (included in `values.yaml`) so Synology PVCs are group-writable.
 
@@ -118,4 +138,4 @@ All 21 AKV keys in the table above must exist before pods become healthy. Common
 
 After Supabase is healthy, update tranzr-gitops AKV keys (`supabase-url`, `supabase-key`, `tranzr-supabase-database-connection-string`) to point at this instance.
 
-**JWT validation (api-gateway):** set issuer to `https://supabase.labgrid.net/auth/v1` and validate via JWKS (`/.well-known/jwks.json`) or OIDC discovery — not `*.supabase.co`.
+**JWT validation (api-gateway):** set `SUPABASE_JWT_ISSUER=https://supabase.labgrid.net/auth/v1`. OIDC discovery is at `/auth/v1/.well-known/openid-configuration`; JWKS at `/auth/v1/.well-known/jwks.json`.
