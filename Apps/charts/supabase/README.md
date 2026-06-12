@@ -129,6 +129,12 @@ All 21 AKV keys in the table above must exist before pods become healthy. Common
 |-----|----------|
 | `https://supabase.labgrid.net/auth/v1/.well-known/jwks.json` | `200` + `keys` array (ES256 after asymmetric migration) |
 | `https://supabase.labgrid.net/auth/v1/.well-known/openid-configuration` | `200` + `issuer` / `jwks_uri` (patched Kong route in this chart) |
+
+After Kong `ConfigMap` changes, restart Kong — declarative config is loaded only at pod start:
+
+```bash
+kubectl rollout restart deployment supabase-supabase-kong -n supabase-system
+```
 | `https://supabase.labgrid.net/.well-known/jwks.json` | `401` — wrong path (hits Studio) |
 | `https://supabase.labgrid.net/auth/v1/.well-known/` | `401` — path must include `jwks.json` or `openid-configuration` |
 - MinIO / storage `CreateContainerConfigError` on `supabase-s3` key `password` — ensure the chart includes the s3 `password` mapping (from `labgrid-supabase-minio-password`).
