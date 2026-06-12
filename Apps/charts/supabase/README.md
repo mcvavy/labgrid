@@ -46,15 +46,49 @@ curl -fsSL https://raw.githubusercontent.com/supabase/supabase/master/docker/uti
 
 Map `JWT_SECRET` → `labgrid-supabase-jwt-secret`, `ANON_KEY` → `labgrid-supabase-jwt-anon-key`, `SERVICE_ROLE_KEY` → `labgrid-supabase-jwt-service-key`.
 
+**Asymmetric JWT (JWKS)** — after `labgrid-supabase-jwt-secret` is in AKV, use the official Supabase utility ([docs](https://supabase.com/docs/guides/self-hosting/self-hosted-auth-keys), [script](https://github.com/supabase/supabase/blob/master/docker/utils/add-new-auth-keys.sh)):
+
+```bash
+mkdir -p /tmp/supabase-keys && cd /tmp/supabase-keys
+echo "JWT_SECRET=<paste labgrid-supabase-jwt-secret value>" > .env
+touch docker-compose.yml   # stub only — script checks it exists for --update-env
+curl -fsSL https://raw.githubusercontent.com/supabase/supabase/master/docker/utils/add-new-auth-keys.sh -o add-new-auth-keys.sh
+sh add-new-auth-keys.sh --update-env
+```
+
+The script **prints only four values** to the terminal (`SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `JWT_KEYS`, `JWT_JWKS`). That is expected upstream behaviour. Two more values (`ANON_KEY_ASYMMETRIC`, `SERVICE_ROLE_KEY_ASYMMETRIC`) are written to `.env` by `--update-env` but not echoed — read them from there:
+
+```bash
+grep -E '^(SUPABASE_|ANON_|SERVICE_|JWT_)' .env
+```
+
+Copy each value into Key Vault manually (`labgrid` vault):
+
+| `.env` variable | AKV secret name |
+|---------------|-----------------|
+| `SUPABASE_PUBLISHABLE_KEY` | `labgrid-supabase-publishable-key` |
+| `SUPABASE_SECRET_KEY` | `labgrid-supabase-api-secret-key` |
+| `ANON_KEY_ASYMMETRIC` | `labgrid-supabase-anon-key-asymmetric` |
+| `SERVICE_ROLE_KEY_ASYMMETRIC` | `labgrid-supabase-service-role-key-asymmetric` |
+| `JWT_KEYS` | `labgrid-supabase-jwt-keys` |
+| `JWT_JWKS` | `labgrid-supabase-jwt-jwks` |
+
+`JWT_KEYS` / `JWT_JWKS` are JSON strings — paste the full value (including `[` / `{`). Ignore the docker-compose “uncomment manually” warning; Kubernetes gets these via Helm/ESO, not docker-compose. After deploy, JWKS at `https://supabase.labgrid.net/auth/v1/.well-known/jwks.json` should list the EC public key plus the legacy HS256 key.
+
 | AKV key | K8s secret | Key | Generate |
 |---------|------------|-----|----------|
 | `acs-smtp-username` | `supabase-smtp` | `username` | existing (Chatwoot) |
 | `acs-smtp-password` | `supabase-smtp` | `password` | existing (Chatwoot) |
-| `labgrid-supabase-jwt-secret` | `supabase-jwt` | `secret` | `generate-keys.sh` → `JWT_SECRET` |
+| `labgrid-supabase-jwt-secret` | `supabase-jwt` | `secret` | [`generate-keys.sh`](https://github.com/supabase/supabase/blob/master/docker/utils/generate-keys.sh) → `JWT_SECRET` |
 | `labgrid-supabase-jwt-anon-key` | `supabase-jwt` | `anonKey` | `generate-keys.sh` → `ANON_KEY` |
 | `labgrid-supabase-jwt-service-key` | `supabase-jwt` | `serviceKey` | `generate-keys.sh` → `SERVICE_ROLE_KEY` |
+| `labgrid-supabase-publishable-key` | `supabase-apikey` | `publishableKey` | [`add-new-auth-keys.sh`](https://github.com/supabase/supabase/blob/master/docker/utils/add-new-auth-keys.sh) |
+| `labgrid-supabase-api-secret-key` | `supabase-apikey` | `secretKey` | `add-new-auth-keys.sh` |
+| `labgrid-supabase-anon-key-asymmetric` | `supabase-apikey` | `anonKeyAsymmetric` | `add-new-auth-keys.sh` |
+| `labgrid-supabase-service-role-key-asymmetric` | `supabase-apikey` | `serviceRoleKeyAsymmetric` | `add-new-auth-keys.sh` |
+| `labgrid-supabase-jwt-keys` | `supabase-apikey` | `jwtKeys` | `add-new-auth-keys.sh` |
+| `labgrid-supabase-jwt-jwks` | `supabase-apikey` | `jwtJwks` | `add-new-auth-keys.sh` |
 | `labgrid-supabase-db-password` | `supabase-db` | `password` | `generate-keys.sh` → `POSTGRES_PASSWORD` |
-| `labgrid-supabase-dashboard-username` | `supabase-dashboard` | `username` | e.g. `supabase` |
 | `labgrid-supabase-dashboard-password` | `supabase-dashboard` | `password` | `generate-keys.sh` → `DASHBOARD_PASSWORD` |
 | `labgrid-supabase-analytics-public-token` | `supabase-analytics` | `publicAccessToken` | `generate-keys.sh` → `LOGFLARE_PUBLIC_ACCESS_TOKEN` |
 | `labgrid-supabase-analytics-private-token` | `supabase-analytics` | `privateAccessToken` | `generate-keys.sh` → `LOGFLARE_PRIVATE_ACCESS_TOKEN` |
@@ -72,12 +106,16 @@ Verify sync after deploy:
 kubectl get externalsecret -n supabase-system
 ```
 
-All 16 AKV keys in the table above must exist before pods become healthy. Common failures:
+All 21 AKV keys in the table above must exist before pods become healthy. Common failures:
 
-- `supabase-dashboard` → `SecretSyncedError` — create `labgrid-supabase-dashboard-username` and `labgrid-supabase-dashboard-password` (blocks Kong and Studio).
+- `supabase-dashboard` → `SecretSyncedError` — create `labgrid-supabase-dashboard-password` in AKV (username is `externalSecrets.dashboard.username` in values).
+- `supabase-apikey` → `SecretSyncedError` — run official [`add-new-auth-keys.sh`](https://github.com/supabase/supabase/blob/master/docker/utils/add-new-auth-keys.sh) and create the six `labgrid-supabase-*` AKV entries above.
+- JWKS returns `{"keys":[]}` — `GOTRUE_JWT_KEYS` not configured; deploy `supabase-apikey` secret and restart auth.
 - MinIO / storage `CreateContainerConfigError` on `supabase-s3` key `password` — ensure the chart includes the s3 `password` mapping (from `labgrid-supabase-minio-password`).
 - MinIO `CrashLoopBackOff` with `file access denied` on `/data` — Chainguard MinIO runs as UID 65532; set `deployment.minio.podSecurityContext.fsGroup: 65532` (included in `values.yaml`) so Synology PVCs are group-writable.
 
 ## Tranzr app integration
 
-After Supabase is healthy, update tranzr-gitops AKV keys (`supabase-url`, `supabase-key`, `tranzr-supabase-database-connection-string`) to point at this instance — separate follow-up.
+After Supabase is healthy, update tranzr-gitops AKV keys (`supabase-url`, `supabase-key`, `tranzr-supabase-database-connection-string`) to point at this instance.
+
+**JWT validation (api-gateway):** set issuer to `https://supabase.labgrid.net/auth/v1` and validate via JWKS (`/.well-known/jwks.json`) or OIDC discovery — not `*.supabase.co`.

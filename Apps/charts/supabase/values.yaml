@@ -12,6 +12,9 @@ supabase:
   secret:
     jwt:
       secretRef: supabase-jwt
+    # ES256 signing + JWKS for Auth / PostgREST / Realtime / Storage (see README).
+    apikey:
+      secretRef: supabase-apikey
     db:
       secretRef: supabase-db
       database: postgres

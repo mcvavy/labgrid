@@ -18,6 +18,7 @@ supabase:
   environment:
     auth:
       API_EXTERNAL_URL: https://supabase.labgrid.net
+      GOTRUE_JWT_ISSUER: https://supabase.labgrid.net/auth/v1
       GOTRUE_SITE_URL: https://supabase.labgrid.net
     studio:
       SUPABASE_PUBLIC_URL: https://supabase.labgrid.net
