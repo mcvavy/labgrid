@@ -8,6 +8,29 @@ externalSecrets:
     name: azure-kv-cluster-store
     kind: ClusterSecretStore
 
+# In-cluster static server that hosts the branded GoTrue email templates.
+# GoTrue fetches each template over HTTP GET (it does not read mounted files),
+# so the HTML lives in a ConfigMap served by nginx and reachable only inside
+# the cluster at http://<name>/<template>.html. The matching auth env vars are
+# under supabase.environment.auth below.
+mailTemplates:
+  enabled: true
+  name: supabase-mail-templates
+  replicaCount: 1
+  runAsUser: 101
+  containerPort: 8080
+  serveRoot: /usr/share/nginx/html
+  image:
+    repository: nginxinc/nginx-unprivileged
+    tag: "1.27-alpine"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      memory: 64Mi
+
 supabase:
   secret:
     jwt:
@@ -56,7 +79,22 @@ supabase:
       GOTRUE_SMTP_HOST: smtp.azurecomm.net
       GOTRUE_SMTP_PORT: "587"
       GOTRUE_SMTP_ADMIN_EMAIL: testing@tranzrmoves.com
-      GOTRUE_SMTP_SENDER_NAME: Tranzr Moves
+      GOTRUE_SMTP_SENDER_NAME: Tranzzer Services
+      # Branded email templates served by the in-cluster mailTemplates server.
+      # URLs must match mailTemplates.name + the ConfigMap file keys (Go template
+      # syntax {{ .Token }} / {{ .ConfirmationURL }} resolved by GoTrue at send time).
+      GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: http://supabase-mail-templates/magic-link.html
+      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: http://supabase-mail-templates/confirmation.html
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: http://supabase-mail-templates/recovery.html
+      GOTRUE_MAILER_TEMPLATES_INVITE: http://supabase-mail-templates/invite.html
+      GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: http://supabase-mail-templates/email-change.html
+      GOTRUE_MAILER_TEMPLATES_REAUTHENTICATION: http://supabase-mail-templates/reauthentication.html
+      GOTRUE_MAILER_SUBJECTS_MAGIC_LINK: Your Tranzzer Services sign-in code
+      GOTRUE_MAILER_SUBJECTS_CONFIRMATION: Confirm your Tranzzer email
+      GOTRUE_MAILER_SUBJECTS_RECOVERY: Reset your Tranzzer Services password
+      GOTRUE_MAILER_SUBJECTS_INVITE: You've been invited to Tranzzer Services
+      GOTRUE_MAILER_SUBJECTS_EMAIL_CHANGE: Confirm your new Tranzzer Services email
+      GOTRUE_MAILER_SUBJECTS_REAUTHENTICATION: Your Tranzzer Services verification code
     storage:
       GLOBAL_S3_BUCKET: supabase
 

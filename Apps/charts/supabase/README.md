@@ -32,6 +32,35 @@ helm upgrade --install supabase Apps/charts/supabase \
 
 Kong ingress at `supabase.labgrid.net` routes API paths and Studio (`/` with basic-auth). Bundled Postgres, MinIO (S3 storage), GoTrue, PostgREST, Realtime, Storage, Analytics. Vector disabled (no hostPath log scraping).
 
+## Branded auth email templates
+
+GoTrue (Supabase Auth) does **not** read email templates from mounted files and the self-hosted Studio has no template editor — it fetches each template over **HTTP GET** at send time. This chart ships Tranzr-branded templates and serves them in-cluster:
+
+- `files/mail-templates/*.html` — self-contained HTML (inlined CSS + header/footer, matching `tranzr-moves-services` transactional email branding). Each file uses GoTrue Go-template variables (`{{ .Token }}`, `{{ .ConfirmationURL }}`, `{{ .Email }}`, `{{ .NewEmail }}`).
+- `templates/mail-templates/` — a ConfigMap (the HTML), a small `nginxinc/nginx-unprivileged` Deployment, and a ClusterIP Service named `supabase-mail-templates`. Reachable only inside the cluster at `http://supabase-mail-templates/<template>.html`.
+- `supabase.environment.auth` wires `GOTRUE_MAILER_TEMPLATES_*` (URLs) and `GOTRUE_MAILER_SUBJECTS_*` (subject lines).
+
+| Template | File | Key variables |
+|----------|------|---------------|
+| Magic Link / OTP sign-in | `magic-link.html` | `.Token`, `.ConfirmationURL` |
+| Confirm signup | `confirmation.html` | `.ConfirmationURL`, `.Token` |
+| Reset password | `recovery.html` | `.ConfirmationURL`, `.Token` |
+| Invite user | `invite.html` | `.ConfirmationURL` |
+| Change email | `email-change.html` | `.Email`, `.NewEmail`, `.ConfirmationURL`, `.Token` |
+| Reauthentication | `reauthentication.html` | `.Token` |
+
+Toggle the whole feature with `mailTemplates.enabled` in `values.yaml`.
+
+The Deployment carries a `checksum/config` annotation, so editing a template (ConfigMap change) rolls the templates pod automatically. GoTrue re-fetches the template per send, so no auth restart is needed after a template edit. Adding/removing template **env vars** still requires an auth rollout:
+
+```bash
+kubectl rollout restart deployment supabase-supabase-auth -n supabase-system
+```
+
+### Reuse for Supabase Cloud / Hetzner (Studio UI)
+
+Each file in `files/mail-templates/` is a single self-contained HTML document, so you can open it and paste the whole thing into **Studio → Authentication → Email Templates** on a managed/Cloud instance. The `{{ .Token }}` / `{{ .ConfirmationURL }}` variables are identical across self-hosted and Cloud, so no edits are needed.
+
 ## Azure Key Vault secrets
 
 All credentials sync via External Secrets (`azure-kv-cluster-store`).

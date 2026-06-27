@@ -20,6 +20,8 @@ supabase:
       API_EXTERNAL_URL: https://supabase.labgrid.net
       GOTRUE_JWT_ISSUER: https://supabase.labgrid.net/auth/v1
       GOTRUE_SITE_URL: https://supabase.labgrid.net
+      # Redirect allow list — targets the client may pass via redirect_to / emailRedirectTo.
+      GOTRUE_URI_ALLOW_LIST: "https://portal.tranzzer.com/auth/**,http://localhost:3002/auth/**"
     studio:
       SUPABASE_PUBLIC_URL: https://supabase.labgrid.net
 

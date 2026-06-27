@@ -1,0 +1,13 @@
+{{- if .Values.mailTemplates.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.mailTemplates.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: mail-templates
+data:
+{{ (.Files.Glob "files/mail-templates/*.html").AsConfig | indent 2 }}
+{{- end }}

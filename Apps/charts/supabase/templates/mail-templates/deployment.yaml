@@ -1,0 +1,80 @@
+{{- if .Values.mailTemplates.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.mailTemplates.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/component: mail-templates
+spec:
+  replicas: {{ .Values.mailTemplates.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      app.kubernetes.io/component: mail-templates
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/mail-templates/configmap.yaml") . | sha256sum }}
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name | quote }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        app.kubernetes.io/component: mail-templates
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ .Values.mailTemplates.runAsUser }}
+        runAsGroup: {{ .Values.mailTemplates.runAsUser }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mail-templates
+          image: "{{ .Values.mailTemplates.image.repository }}:{{ .Values.mailTemplates.image.tag }}"
+          imagePullPolicy: {{ .Values.mailTemplates.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.mailTemplates.containerPort }}
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            httpGet:
+              path: /magic-link.html
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /magic-link.html
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.mailTemplates.resources | nindent 12 }}
+          volumeMounts:
+            - name: templates
+              mountPath: {{ .Values.mailTemplates.serveRoot }}
+              readOnly: true
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: templates
+          configMap:
+            name: {{ .Values.mailTemplates.name }}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+{{- end }}
