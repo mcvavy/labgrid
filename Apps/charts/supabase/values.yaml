@@ -8,6 +8,24 @@ externalSecrets:
     name: azure-kv-cluster-store
     kind: ClusterSecretStore
 
+# Carve-out Ingress that exposes GoTrue's OIDC discovery document
+# (/auth/v1/.well-known/openid-configuration) by routing that single path
+# straight to the auth Service, bypassing Kong. The upstream chart's Kong
+# config only opens jwks.json (not the discovery doc), and we keep the upstream
+# chart unmodified — so this owned Ingress carves out just that one path.
+# Required by api-gateway + backend JWT validation (OIDC discovery -> jwks_uri).
+# nginx serves a more specific (Exact) path ahead of the chart's "/" -> Kong rule.
+oidcDiscoveryIngress:
+  enabled: true
+  host: supabase.labgrid.net
+  className: nginx
+  authServiceName: supabase-supabase-auth
+  authServicePort: 9999
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /.well-known/openid-configuration
+
 # In-cluster static server that hosts the branded GoTrue email templates.
 # GoTrue fetches each template over HTTP GET (it does not read mounted files),
 # so the HTML lives in a ConfigMap served by nginx and reachable only inside

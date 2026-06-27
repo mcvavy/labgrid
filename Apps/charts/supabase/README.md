@@ -16,6 +16,8 @@ Self-hosted Supabase on the Labgrid home cluster using [supabase-community/supab
 helm dependency update Apps/charts/supabase
 ```
 
+The upstream `supabase-community/supabase-kubernetes` chart is used **unmodified** as a pinned dependency. Its bundled Kong config only opens `/auth/v1/.well-known/jwks.json`, not the OIDC discovery doc — see [OIDC discovery](#oidc-discovery-openid-configuration) below for how that path is exposed without patching the subchart.
+
 ## Deploy
 
 Pushed to `main` under `Apps/charts/supabase` — Argo CD syncs automatically with `values-production.yaml`.
@@ -31,6 +33,18 @@ helm upgrade --install supabase Apps/charts/supabase \
 ## Architecture
 
 Kong ingress at `supabase.labgrid.net` routes API paths and Studio (`/` with basic-auth). Bundled Postgres, MinIO (S3 storage), GoTrue, PostgREST, Realtime, Storage, Analytics. Vector disabled (no hostPath log scraping).
+
+## OIDC discovery (openid-configuration)
+
+The api-gateway and backend validate Supabase JWTs via OIDC discovery: they fetch `…/auth/v1/.well-known/openid-configuration`, read `jwks_uri`, then pull the signing keys from JWKS. The upstream chart's Kong declarative config only opens `jwks.json` (and `oauth-authorization-server`) — the **discovery doc stays behind `key-auth` and returns `401`**, which breaks JWT validation (`IDX10500: No security keys`).
+
+Rather than fork/patch the bundled Kong config (which `helm dependency update` silently reverts), this chart ships a small **carve-out Ingress** it owns — `templates/oidc-discovery-ingress.yaml`:
+
+- A second nginx Ingress on `supabase.labgrid.net` with an **`Exact`** path `/auth/v1/.well-known/openid-configuration` (more specific than the chart's `/` → Kong rule, so nginx routes it first).
+- Backend is the GoTrue auth Service directly (`supabase-supabase-auth:9999`), **bypassing Kong** and its `key-auth`.
+- `rewrite-target: /.well-known/openid-configuration` maps the `/auth/v1/...` URL to GoTrue's real path. JWKS itself stays on the upstream Kong route.
+
+This keeps the upstream subchart **unmodified and bumpable**. Toggle with `oidcDiscoveryIngress.enabled` in `values.yaml`; host/service/port are configurable there too. No subchart edit, no Kong restart needed for discovery.
 
 ## Branded auth email templates
 
@@ -152,14 +166,14 @@ All 21 AKV keys in the table above must exist before pods become healthy. Common
 - `supabase-apikey` → `SecretSyncedError` — run official [`add-new-auth-keys.sh`](https://github.com/supabase/supabase/blob/master/docker/utils/add-new-auth-keys.sh) and create the six `labgrid-supabase-*` AKV entries above.
 - Auth `CrashLoopBackOff` / `cannot unmarshal object` on `GOTRUE_JWT_KEYS` — `labgrid-supabase-jwt-keys` has `JWT_JWKS` pasted by mistake; it must be the `JWT_KEYS` line starting with `[`.
 - JWKS returns `{"keys":[]}` — `GOTRUE_JWT_KEYS` not configured; deploy `supabase-apikey` secret and restart auth.
-- Well-known `401` / `404` — use the full path below (not Studio root). Kong exposes JWKS and OIDC discovery without an API key only under `/auth/v1/`:
+- Well-known `401` / `404` — use the full path below (not Studio root). JWKS is exposed by Kong under `/auth/v1/`; OIDC discovery is exposed by the dedicated carve-out Ingress (see [OIDC discovery](#oidc-discovery-openid-configuration)):
 
 | URL | Expected |
 |-----|----------|
 | `https://supabase.labgrid.net/auth/v1/.well-known/jwks.json` | `200` + `keys` array (ES256 after asymmetric migration) |
-| `https://supabase.labgrid.net/auth/v1/.well-known/openid-configuration` | `200` + `issuer` / `jwks_uri` (patched Kong route in this chart) |
+| `https://supabase.labgrid.net/auth/v1/.well-known/openid-configuration` | `200` + `issuer` / `jwks_uri` (served by the OIDC discovery Ingress, bypassing Kong) |
 
-After Kong `ConfigMap` changes, restart Kong — declarative config is loaded only at pod start:
+JWKS is served by Kong, whose declarative config is loaded only at pod start — after Kong `ConfigMap` changes, restart it:
 
 ```bash
 kubectl rollout restart deployment supabase-supabase-kong -n supabase-system
