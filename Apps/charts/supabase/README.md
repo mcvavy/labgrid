@@ -40,7 +40,7 @@ The api-gateway and backend validate Supabase JWTs via OIDC discovery: they fetc
 
 Rather than fork/patch the bundled Kong config (which `helm dependency update` silently reverts), this chart ships a small **carve-out Ingress** it owns — `templates/oidc-discovery-ingress.yaml`:
 
-- A second nginx Ingress on `supabase.labgrid.net` with an **`Exact`** path `/auth/v1/.well-known/openid-configuration` (more specific than the chart's `/` → Kong rule, so nginx routes it first).
+- A second nginx Ingress on `supabase.labgrid.net` matching `/auth/v1/\.well-known/openid-configuration` (regex/`ImplementationSpecific` pathType — required because `rewrite-target` makes the controller treat the path as a regex; it's more specific than the chart's `/` → Kong rule, so nginx routes it first).
 - Backend is the GoTrue auth Service directly (`supabase-supabase-auth:9999`), **bypassing Kong** and its `key-auth`.
 - `rewrite-target: /.well-known/openid-configuration` maps the `/auth/v1/...` URL to GoTrue's real path. JWKS itself stays on the upstream Kong route.
 

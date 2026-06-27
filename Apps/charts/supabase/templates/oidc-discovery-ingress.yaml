@@ -1,8 +1,10 @@
 {{- if .Values.oidcDiscoveryIngress.enabled }}
 # Bypasses Kong for the single OIDC discovery path so api-gateway/backend JWT
 # validation can fetch openid-configuration -> jwks_uri. The upstream Kong
-# config leaves this path behind key-auth (returns 401); nginx routes this more
-# specific Exact path directly to GoTrue and rewrites it to the doc's real path.
+# config leaves this path behind key-auth (returns 401); nginx routes this
+# specific path directly to GoTrue and rewrites it to the doc's real path.
+# pathType is ImplementationSpecific (not Exact): setting rewrite-target makes
+# the controller treat the path as a regex, which it rejects with Exact/Prefix.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -20,8 +22,8 @@ spec:
     - host: {{ .Values.oidcDiscoveryIngress.host | quote }}
       http:
         paths:
-          - path: /auth/v1/.well-known/openid-configuration
-            pathType: Exact
+          - path: /auth/v1/\.well-known/openid-configuration
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: {{ .Values.oidcDiscoveryIngress.authServiceName }}
