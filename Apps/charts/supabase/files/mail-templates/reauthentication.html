@@ -222,7 +222,7 @@
             <p>Confirm this action with the code below</p>
         </div>
         <div class="content">
-            <div class="greeting">Hello,</div>
+            <div class="greeting">{{ if .Data.first_name }}Hi {{ .Data.first_name }},{{ else }}Hello,{{ end }}</div>
 
             <div class="main-text">
                 For your security, please confirm this action by entering the verification code below. This code is valid for a short time only.
