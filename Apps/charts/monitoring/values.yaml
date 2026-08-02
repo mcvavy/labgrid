@@ -44,20 +44,19 @@ alloy:
         protocol: TCP
 
 # Public Faro collector for Hostinger Drivers PWA (staging).
-alloyFaroIngress:
+# Attaches to labgrid Base Gateway (*.tranzrmoves.com listeners) — same edge as staging API.
+# Do not add HTTP→HTTPS redirect while NPM forwards to :80 (redirect loop).
+alloyFaroGateway:
   enabled: false
   host: faro.tranzrmoves.com
-  ingressClassName: nginx
   serviceName: monitoring-alloy
   servicePort: 12347
-  annotations:
-    cert-manager.io/cluster-issuer: tranzr-letsencrypt-production
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: HTTP
-  tls:
-    - hosts:
-        - faro.tranzrmoves.com
-      secretName: faro-tranzrmoves-tls
+  gateway:
+    name: labgrid-gateway
+    namespace: nginx-gateway
+  sectionNames:
+    - http-tranzrmoves
+    - https-tranzrmoves
 
 alloyEndpoints:
   clusterLabel: labgrid

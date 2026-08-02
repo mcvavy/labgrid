@@ -42,7 +42,7 @@ Validated in `Apps/spike/monitoring-stack` (`monitoring-spike` namespace). See s
 - Grafana: https://grafana.labgrid.net
 - Prometheus: https://prometheus.labgrid.net
 - Alertmanager: https://alertmanager.labgrid.net
-- Faro (Drivers PWA staging): https://faro.tranzrmoves.com — create Cloudflare DNS to the labgrid ingress LB if missing
+- Faro (Drivers PWA staging): https://faro.tranzrmoves.com — Gateway API HTTPRoute on `labgrid-gateway` (VIP `192.168.1.205`); Cloudflare/NPM same pattern as `api.tranzrmoves.com`
 
 **Hetzner production**
 
@@ -80,7 +80,7 @@ Set on Tranzr workloads (see tranzr-gitops `observability` values):
 
 ### Alloy Faro (public browser RUM)
 
-`faro.receiver` listens on Service port **12347**. Labgrid exposes it via Ingress (`alloyFaroIngress`) at `https://faro.tranzrmoves.com` with issuer `tranzr-letsencrypt-production`. Point Hostinger Drivers PWA staging `NEXT_PUBLIC_FARO_URL` at `https://faro.tranzrmoves.com/collect`.
+`faro.receiver` listens on Service port **12347**. Labgrid exposes it via **Gateway API** HTTPRoute (`alloyFaroGateway`) on shared `labgrid-gateway` listeners `http-tranzrmoves` / `https-tranzrmoves` (`*.tranzrmoves.com` / `tranzrmoves-wildcard-tls`). Host: `https://faro.tranzrmoves.com`. Point Hostinger Drivers PWA staging `NEXT_PUBLIC_FARO_URL` at `https://faro.tranzrmoves.com/collect`. DNS/NPM: same as staging API → Gateway VIP `192.168.1.205` (not ingress-nginx `.204`).
 
 ### Upgrading (labgrid)
 

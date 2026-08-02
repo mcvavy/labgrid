@@ -417,19 +417,18 @@ alloy:
     enabled: false
 
 ###############################
-# Alloy Faro public Ingress (Drivers PWA staging)
+# Alloy Faro public Gateway API (Drivers PWA staging)
+# labgrid-gateway @ 192.168.1.205 — listeners http-tranzrmoves / https-tranzrmoves
+# TLS: tranzrmoves-wildcard-tls (*.tranzrmoves.com). No Ingress.
 ###############################
-alloyFaroIngress:
+alloyFaroGateway:
   enabled: true
   host: faro.tranzrmoves.com
-  ingressClassName: nginx
   serviceName: monitoring-alloy
   servicePort: 12347
-  annotations:
-    cert-manager.io/cluster-issuer: tranzr-letsencrypt-production
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: HTTP
-  tls:
-    - hosts:
-        - faro.tranzrmoves.com
-      secretName: faro-tranzrmoves-tls
+  gateway:
+    name: labgrid-gateway
+    namespace: nginx-gateway
+  sectionNames:
+    - http-tranzrmoves
+    - https-tranzrmoves
