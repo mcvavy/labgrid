@@ -51,6 +51,11 @@ alloyFaroGateway:
   host: faro.tranzrmoves.com
   serviceName: monitoring-alloy
   servicePort: 12347
+  listenAddress: "0.0.0.0"
+  listenPort: 12347
+  corsAllowedOrigins:
+    - https://drivers.tranzrmoves.com
+    - http://localhost:3005
   gateway:
     name: labgrid-gateway
     namespace: nginx-gateway

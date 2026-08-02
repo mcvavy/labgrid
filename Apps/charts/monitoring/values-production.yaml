@@ -420,12 +420,18 @@ alloy:
 # Alloy Faro public Gateway API (Drivers PWA staging)
 # labgrid-gateway @ 192.168.1.205 — listeners http-tranzrmoves / https-tranzrmoves
 # TLS: tranzrmoves-wildcard-tls (*.tranzrmoves.com). No Ingress.
+# Enables faro.receiver in alloy-configmap + HTTPRoute + Alloy Service port 12347.
 ###############################
 alloyFaroGateway:
   enabled: true
   host: faro.tranzrmoves.com
   serviceName: monitoring-alloy
   servicePort: 12347
+  listenAddress: "0.0.0.0"
+  listenPort: 12347
+  corsAllowedOrigins:
+    - https://drivers.tranzrmoves.com
+    - http://localhost:3005
   gateway:
     name: labgrid-gateway
     namespace: nginx-gateway

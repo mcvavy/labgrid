@@ -80,7 +80,17 @@ Set on Tranzr workloads (see tranzr-gitops `observability` values):
 
 ### Alloy Faro (public browser RUM)
 
-`faro.receiver` listens on Service port **12347**. Labgrid exposes it via **Gateway API** HTTPRoute (`alloyFaroGateway`) on shared `labgrid-gateway` listeners `http-tranzrmoves` / `https-tranzrmoves` (`*.tranzrmoves.com` / `tranzrmoves-wildcard-tls`). Host: `https://faro.tranzrmoves.com`. Point Hostinger Drivers PWA staging `NEXT_PUBLIC_FARO_URL` at `https://faro.tranzrmoves.com/collect`. DNS/NPM: same as staging API → Gateway VIP `192.168.1.205` (not ingress-nginx `.204`).
+Configured entirely via **`values-production.yaml`** → `alloyFaroGateway` (Argo uses that file, not `values.yaml`):
+
+| Key | Purpose |
+|-----|---------|
+| `enabled` | Gates `faro.receiver` in Alloy ConfigMap + HTTPRoute |
+| `listenPort` / `listenAddress` | Alloy `faro.receiver` bind (must match `alloy.alloy.extraPorts` faro) |
+| `corsAllowedOrigins` | Browser origins allowed to POST |
+| `host` / `gateway` / `sectionNames` | Gateway API HTTPRoute on `labgrid-gateway` |
+| `serviceName` / `servicePort` | Backend Service (`monitoring-alloy:12347`) |
+
+Host: `https://faro.tranzrmoves.com`. Point Hostinger Drivers PWA staging `NEXT_PUBLIC_FARO_URL` at `https://faro.tranzrmoves.com/collect`. DNS/NPM: same as staging API → Gateway VIP `192.168.1.205` (not ingress-nginx `.204`).
 
 ### Upgrading (labgrid)
 

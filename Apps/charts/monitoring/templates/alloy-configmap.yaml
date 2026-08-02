@@ -85,14 +85,16 @@ data:
         metrics = [otelcol.exporter.prometheus.default.input]
       }
     }
+{{- if .Values.alloyFaroGateway.enabled }}
 
     faro.receiver "default" {
       server {
-        listen_address = "0.0.0.0"
-        listen_port    = 12347
+        listen_address = {{ .Values.alloyFaroGateway.listenAddress | default "0.0.0.0" | quote }}
+        listen_port    = {{ .Values.alloyFaroGateway.listenPort | default 12347 }}
         cors_allowed_origins = [
-          "https://drivers.tranzrmoves.com",
-          "http://localhost:3005",
+{{- range .Values.alloyFaroGateway.corsAllowedOrigins }}
+          {{ . | quote }},
+{{- end }}
         ]
       }
 
@@ -101,6 +103,7 @@ data:
         traces = [otelcol.exporter.otlp.tempo.input]
       }
     }
+{{- end }}
 
     otelcol.exporter.otlp "tempo" {
       client {
