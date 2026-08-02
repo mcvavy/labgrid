@@ -77,6 +77,8 @@ locals {
   }
 
   # Match Hetzner NGF pin (Gateway API CRDs installed in Base/Operators).
+  # NGF 2.x provisions one LoadBalancer Service per Gateway — keep a single
+  # labgrid-gateway on .205 and add extra listeners for other wildcards.
   nginxGatewayFabricSettings = {
     name             = "ngf"
     namespace        = "nginx-gateway"
@@ -88,5 +90,12 @@ locals {
     gateway_hostname = "*.labgrid.net"
     tls_secret_name  = "labgrid-wildcard-tls"
     cluster_issuer   = "letsencrypt-production"
+
+    # Staging *.tranzrmoves.com listeners on the same Gateway (separate Certificate).
+    tranzrmoves_http_listener    = "http-tranzrmoves"
+    tranzrmoves_https_listener   = "https-tranzrmoves"
+    tranzrmoves_gateway_hostname = "*.tranzrmoves.com"
+    tranzrmoves_tls_secret_name  = "tranzrmoves-wildcard-tls"
+    tranzrmoves_cluster_issuer   = "tranzr-letsencrypt-production"
   }
 }

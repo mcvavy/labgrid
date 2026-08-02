@@ -49,11 +49,14 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 
 #### Edge / Ingress (home cluster)
 
-- **ingress-nginx** (classic `Ingress`): MetalLB VIP `192.168.1.204` — existing apps (`*.labgrid.net`, staging `*.tranzrmoves.com`) stay here until cut over.
-- **NGINX Gateway Fabric** (Gateway API): MetalLB VIP `192.168.1.205` — `Gateway` `labgrid-gateway` for `*.labgrid.net` with cert-manager (`letsencrypt-production` → `labgrid-wildcard-tls`).
-- **Config layout**: Gateway API + NGF CRDs and cert-manager `--enable-gateway-api` in `Base/Operators`; NGF Helm, Gateway, and smoke HTTPRoute in `Base` (`gateway.tf`). No ad-hoc `kubectl apply`.
-- **Smoke test**: `gateway-test.labgrid.net` → `gateway-smoke` HTTPRoute (point Cloudflare A record at `192.168.1.205`).
-- **Migration path**: add `HTTPRoute` templates in `Apps/charts/*` per app, flip DNS to `.205`, then remove Ingress. Defer `*.tranzrmoves.com` on Gateway until `*.labgrid.net` is proven. Decommission ingress-nginx only when Ingress count is zero.
+- **ingress-nginx** (classic `Ingress`): MetalLB VIP `192.168.1.204` — remaining `*.labgrid.net` apps and any host not yet cut over.
+- **NGINX Gateway Fabric** (Gateway API): MetalLB VIP `192.168.1.205` — single `Gateway` `labgrid-gateway` (NGF provisions one LB Service per Gateway):
+  - listeners `http` / `https` — `*.labgrid.net` (`letsencrypt-production` → `labgrid-wildcard-tls`)
+  - listeners `http-tranzrmoves` / `https-tranzrmoves` — `*.tranzrmoves.com` (explicit Certificate + `tranzr-letsencrypt-production` → `tranzrmoves-wildcard-tls`); staging API/Chatwoot HTTPRoutes from tranzr-gitops
+- **Config layout**: Gateway API + NGF CRDs and cert-manager `--enable-gateway-api` in `Base/Operators`; NGF Helm + Gateway in `Base` (`gateway.tf`). No ad-hoc `kubectl apply`.
+- **Smoke test**: `gateway-test.labgrid.net` → `gateway-smoke` HTTPRoute.
+- **Cloudflare → NPM → Gateway** (staging `api` / `chat` `.tranzrmoves.com`): forward **`http://192.168.1.205:80`**, Force SSL **off**, Cloudflare SSL **Full**. Do not forward bare `https://192.168.1.205:443` without SNI (`*.tranzrmoves.com`). Do not enable Gateway HTTP→HTTPS redirects while NPM targets `:80` (redirect loop).
+- **Migration path**: dual-run HTTPRoute + Ingress → flip NPM to `.205` → disable Ingress. Decommission ingress-nginx when Ingress count is zero.
 
 ### Labgrid Hetzner Cluster (Production)
 

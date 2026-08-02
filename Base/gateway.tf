@@ -29,6 +29,8 @@ resource "kubernetes_manifest" "labgrid_gateway" {
       name      = local.nginxGatewayFabricSettings.gateway_name
       namespace = local.nginxGatewayFabricSettings.namespace
       annotations = {
+        # Issues labgrid.net wildcard into labgrid-wildcard-tls.
+        # tranzrmoves.com uses an explicit Certificate (different ClusterIssuer).
         "cert-manager.io/cluster-issuer" = local.nginxGatewayFabricSettings.cluster_issuer
       }
     }
@@ -65,6 +67,37 @@ resource "kubernetes_manifest" "labgrid_gateway" {
               from = "All"
             }
           }
+        },
+        {
+          name     = local.nginxGatewayFabricSettings.tranzrmoves_http_listener
+          port     = 80
+          protocol = "HTTP"
+          hostname = local.nginxGatewayFabricSettings.tranzrmoves_gateway_hostname
+          allowedRoutes = {
+            namespaces = {
+              from = "All"
+            }
+          }
+        },
+        {
+          name     = local.nginxGatewayFabricSettings.tranzrmoves_https_listener
+          port     = 443
+          protocol = "HTTPS"
+          hostname = local.nginxGatewayFabricSettings.tranzrmoves_gateway_hostname
+          tls = {
+            mode = "Terminate"
+            certificateRefs = [
+              {
+                kind = "Secret"
+                name = local.nginxGatewayFabricSettings.tranzrmoves_tls_secret_name
+              }
+            ]
+          }
+          allowedRoutes = {
+            namespaces = {
+              from = "All"
+            }
+          }
         }
       ]
     }
@@ -72,7 +105,40 @@ resource "kubernetes_manifest" "labgrid_gateway" {
 
   depends_on = [
     helm_release.nginx_gateway_fabric,
-    kubernetes_manifest.letsencrypt-production
+    kubernetes_manifest.letsencrypt-production,
+    kubernetes_manifest.tranzrmoves_wildcard_certificate
+  ]
+}
+
+################################################################################
+# Explicit Certificate for *.tranzrmoves.com (tranzr DNS-01 issuer).
+# Cannot use the Gateway's single cert-manager.io/cluster-issuer annotation.
+################################################################################
+
+resource "kubernetes_manifest" "tranzrmoves_wildcard_certificate" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = local.nginxGatewayFabricSettings.tranzrmoves_tls_secret_name
+      namespace = local.nginxGatewayFabricSettings.namespace
+    }
+    spec = {
+      secretName = local.nginxGatewayFabricSettings.tranzrmoves_tls_secret_name
+      issuerRef = {
+        name  = local.nginxGatewayFabricSettings.tranzrmoves_cluster_issuer
+        kind  = "ClusterIssuer"
+        group = "cert-manager.io"
+      }
+      dnsNames = [
+        local.nginxGatewayFabricSettings.tranzrmoves_gateway_hostname
+      ]
+    }
+  }
+
+  depends_on = [
+    helm_release.nginx_gateway_fabric,
+    kubernetes_manifest.tranzr-letsencrypt-production
   ]
 }
 
