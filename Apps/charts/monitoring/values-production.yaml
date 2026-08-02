@@ -400,6 +400,10 @@ alloy:
         port: 4318
         targetPort: 4318
         protocol: TCP
+      - name: faro
+        port: 12347
+        targetPort: 12347
+        protocol: TCP
 
   resources:
     requests:
@@ -411,3 +415,21 @@ alloy:
 
   serviceMonitor:
     enabled: false
+
+###############################
+# Alloy Faro public Ingress (Drivers PWA staging)
+###############################
+alloyFaroIngress:
+  enabled: true
+  host: faro.tranzrmoves.com
+  ingressClassName: nginx
+  serviceName: monitoring-alloy
+  servicePort: 12347
+  annotations:
+    cert-manager.io/cluster-issuer: tranzr-letsencrypt-production
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+  tls:
+    - hosts:
+        - faro.tranzrmoves.com
+      secretName: faro-tranzrmoves-tls

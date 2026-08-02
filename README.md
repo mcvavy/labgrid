@@ -42,10 +42,18 @@ A modern, production-grade Kubernetes infrastructure for running enterprise work
 - kubeadm-based cluster on Proxmox for keeping up to date with Kubernetes certification exam curriculum
 - **Database Layer**: PostgreSQL clusters managed by CloudNativePG
 - **Storage**: Synology NAS integration via CSI driver
-- **Networking**: Kube-vip, nginx, wireguard in addition to Kubernetes networking.
+- **Networking**: Kube-vip, MetalLB, wireguard, plus dual edge stack (see below)
 - **Security**: Azure Key Vault for secrets management
 - **Monitoring**: Prometheus & Grafana stack
 - **CI/CD**: GitHub Actions for automation
+
+#### Edge / Ingress (home cluster)
+
+- **ingress-nginx** (classic `Ingress`): MetalLB VIP `192.168.1.204` — existing apps (`*.labgrid.net`, staging `*.tranzrmoves.com`) stay here until cut over.
+- **NGINX Gateway Fabric** (Gateway API): MetalLB VIP `192.168.1.205` — `Gateway` `labgrid-gateway` for `*.labgrid.net` with cert-manager (`letsencrypt-production` → `labgrid-wildcard-tls`).
+- **Config layout**: Gateway API + NGF CRDs and cert-manager `--enable-gateway-api` in `Base/Operators`; NGF Helm, Gateway, and smoke HTTPRoute in `Base` (`gateway.tf`). No ad-hoc `kubectl apply`.
+- **Smoke test**: `gateway-test.labgrid.net` → `gateway-smoke` HTTPRoute (point Cloudflare A record at `192.168.1.205`).
+- **Migration path**: add `HTTPRoute` templates in `Apps/charts/*` per app, flip DNS to `.205`, then remove Ingress. Defer `*.tranzrmoves.com` on Gateway until `*.labgrid.net` is proven. Decommission ingress-nginx only when Ingress count is zero.
 
 ### Labgrid Hetzner Cluster (Production)
 

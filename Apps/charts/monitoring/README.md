@@ -8,7 +8,7 @@ Production observability for the **labgrid home cluster** (Argo CD). Hetzner Tra
 | **grafana** | grafana.github.io | **Standalone** Grafana UI |
 | **loki** | grafana.github.io | Log aggregation |
 | **tempo** | grafana.github.io | Distributed tracing (monolithic) |
-| **alloy** | grafana.github.io | DaemonSet: pod logs → Loki; OTLP → Tempo + Prometheus remote_write |
+| **alloy** | grafana.github.io | DaemonSet: pod logs → Loki; OTLP → Tempo + Prometheus remote_write; Faro → Loki/Tempo |
 
 ### Dependencies
 
@@ -42,12 +42,14 @@ Validated in `Apps/spike/monitoring-stack` (`monitoring-spike` namespace). See s
 - Grafana: https://grafana.labgrid.net
 - Prometheus: https://prometheus.labgrid.net
 - Alertmanager: https://alertmanager.labgrid.net
+- Faro (Drivers PWA staging): https://faro.tranzrmoves.com — create Cloudflare DNS to the labgrid ingress LB if missing
 
 **Hetzner production**
 
-- Grafana: https://grafana.tranzr.co.uk
-- Prometheus: https://prometheus.tranzr.co.uk
-- Alertmanager: https://alertmanager.tranzr.co.uk
+- Grafana: https://grafana.tranzzer.com
+- Prometheus: https://prometheus.tranzzer.com
+- Alertmanager: https://alertmanager.tranzzer.com
+- Faro (Drivers PWA production): https://faro.tranzzer.com (configured in hetzner-k3s)
 
 ### Metrics strategy (app-focused)
 
@@ -75,6 +77,10 @@ Set on Tranzr workloads (see tranzr-gitops `observability` values):
 
 - `OTEL_EXPORTER_OTLP_ENDPOINT=http://monitoring-alloy.monitoring-system.svc.cluster.local:4317`
 - `OTEL_EXPORTER_OTLP_PROTOCOL=grpc`
+
+### Alloy Faro (public browser RUM)
+
+`faro.receiver` listens on Service port **12347**. Labgrid exposes it via Ingress (`alloyFaroIngress`) at `https://faro.tranzrmoves.com` with issuer `tranzr-letsencrypt-production`. Point Hostinger Drivers PWA staging `NEXT_PUBLIC_FARO_URL` at `https://faro.tranzrmoves.com/collect`.
 
 ### Upgrading (labgrid)
 

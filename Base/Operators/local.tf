@@ -1,11 +1,11 @@
 locals {
 
   metallbSettings = {
-    name          = "metallb"
-    namespace     = "metallb-system"
-    version       = "0.14.9"
-    repository    = "https://metallb.github.io/metallb"
-    apiVersion    = "metallb.io/v1beta1"
+    name       = "metallb"
+    namespace  = "metallb-system"
+    version    = "0.14.9"
+    repository = "https://metallb.github.io/metallb"
+    apiVersion = "metallb.io/v1beta1"
   }
 
   certManagerSettings = {
@@ -27,5 +27,11 @@ locals {
     namespace     = "external-secrets"
     chart_version = "2.2.0"
     repository    = "https://charts.external-secrets.io"
+  }
+
+  # Pins match Hetzner (NGF 2.5.0 → Gateway API standard v1.5.1).
+  nginxGatewayFabricSettings = {
+    version             = "2.5.0"
+    gateway_api_version = "v1.5.1"
   }
 }

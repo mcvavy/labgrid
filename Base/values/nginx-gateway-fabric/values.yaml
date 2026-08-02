@@ -1,0 +1,7 @@
+# Global NGINX data-plane Service settings for all Gateways managed by this NGF.
+# Keep ingress-nginx on MetalLB 192.168.1.204; pin NGF Gateway VIP to .205.
+nginx:
+  service:
+    type: LoadBalancer
+    externalTrafficPolicy: Local
+    loadBalancerIP: "192.168.1.205"

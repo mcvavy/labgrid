@@ -1,11 +1,11 @@
 locals {
 
   metallbSettings = {
-    name          = "metallb"
-    namespace     = "metallb-system"
-    version       = "0.14.9"
-    repository    = "https://metallb.github.io/metallb"
-    apiVersion    = "metallb.io/v1beta1"
+    name       = "metallb"
+    namespace  = "metallb-system"
+    version    = "0.14.9"
+    repository = "https://metallb.github.io/metallb"
+    apiVersion = "metallb.io/v1beta1"
   }
 
   certManagerSettings = {
@@ -39,25 +39,25 @@ locals {
   clusterIssuerSettings = {
     nameStaging          = "letsencrypt-staging"
     nameProduction       = "letsencrypt-production"
-    tranzrNameStaging          = "tranzr-letsencrypt-staging"
-    tranzrNameProduction       = "tranzr-letsencrypt-production"
+    tranzrNameStaging    = "tranzr-letsencrypt-staging"
+    tranzrNameProduction = "tranzr-letsencrypt-production"
     stagingServer        = "https://acme-staging-v02.api.letsencrypt.org/directory"
     productionServer     = "https://acme-v02.api.letsencrypt.org/directory"
-    namespace     = "cert-manager"
-    apiVersion    = "cert-manager.io/v1"
-    kind          = "ClusterIssuer"
-    issuerRef     = "letsencrypt"
-    dnsZones      = var.dnsZones
-    email = var.letsencryptEmail
+    namespace            = "cert-manager"
+    apiVersion           = "cert-manager.io/v1"
+    kind                 = "ClusterIssuer"
+    issuerRef            = "letsencrypt"
+    dnsZones             = var.dnsZones
+    email                = var.letsencryptEmail
   }
 
   synologyCsiSettings = {
-    name          = "synology-csi"
-    namespace     = "synology-csi"
-    chart_version = "0.10.1"
-    repository    = "https://christian-schlichtherle.github.io/synology-csi-chart"
-    clientIp      = var.synologyClientIp
-    clientPort    = var.synologyClientPort
+    name                   = "synology-csi"
+    namespace              = "synology-csi"
+    chart_version          = "0.10.1"
+    repository             = "https://christian-schlichtherle.github.io/synology-csi-chart"
+    clientIp               = var.synologyClientIp
+    clientPort             = var.synologyClientPort
     serviceAccountUsername = var.synologyServiceAccountUsername
     serviceAccountPassword = var.synologyServiceAccountPassword
   }
@@ -74,5 +74,19 @@ locals {
     namespace     = "prometheus-system"
     chart_version = "70.3.0"
     repository    = "https://prometheus-community.github.io/helm-charts"
+  }
+
+  # Match Hetzner NGF pin (Gateway API CRDs installed in Base/Operators).
+  nginxGatewayFabricSettings = {
+    name             = "ngf"
+    namespace        = "nginx-gateway"
+    chart            = "nginx-gateway-fabric"
+    chart_version    = "2.5.0"
+    repository       = "oci://ghcr.io/nginx/charts"
+    load_balancer_ip = "192.168.1.205"
+    gateway_name     = "labgrid-gateway"
+    gateway_hostname = "*.labgrid.net"
+    tls_secret_name  = "labgrid-wildcard-tls"
+    cluster_issuer   = "letsencrypt-production"
   }
 }
