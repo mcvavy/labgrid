@@ -32,7 +32,9 @@ locals {
   argocdSettings = {
     name          = "argo-cd"
     namespace     = "argocd"
-    chart_version = "7.8.2"
+    # argo-helm 10.2.2 → Argo CD v3.4.6 (k8s client schema covers 1.36 fields
+    # such as Deployment.status.terminatingReplicas; required for ServerSideApply).
+    chart_version = "10.2.2"
     repository    = "https://argoproj.github.io/argo-helm"
   }
 
