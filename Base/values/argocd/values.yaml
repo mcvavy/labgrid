@@ -1,5 +1,7 @@
-
+# Argo CD via argo-helm (Base pin → app v3.4.6). Values shape is stable across chart 7→10
+# for global.domain / configs / server.certificate / server.ingress used below.
 # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
+# Upgrade notes (2.14 → 3.x): https://argo-cd.readthedocs.io/en/stable/operator-manual/upgrading/2.14-3.0/
 
 global:
   domain: argocd.labgrid.net
@@ -10,6 +12,8 @@ configs:
     # https://argo-cd.readthedocs.io/en/stable/operator-manual/user-management/#create-new-user
     accounts.labgrid-user: "apiKey, login"
     accounts.admin: "apiKey, login"
+    # Keep v2-style Application update/delete applying to managed resources (sync/prune UI).
+    server.rbac.disableApplicationFineGrainedRBACInheritance: "false"
 
   rbac:
     create: true
