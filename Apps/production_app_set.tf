@@ -42,7 +42,10 @@ resource "argocd_application_set" "production" {
             prune     = false
             self_heal = true
           }
-          sync_options = ["CreateNamespace=true", "ServerSideApply=true"]
+          # Avoid ServerSideApply: Argo CD v2.14 static schemas lack newer K8s fields
+          # (e.g. Deployment status.terminatingReplicas on 1.36), which causes
+          # ComparisonError and blocks sync for apps like monitoring.
+          sync_options = ["CreateNamespace=true"]
         }
       }
     }
