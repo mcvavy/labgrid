@@ -1,0 +1,27 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: {{ .Values.rabbitmqCluster.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: rabbitmq
+    app.kubernetes.io/name: {{ .Chart.Name | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+spec:
+  replicas: {{ .Values.rabbitmqCluster.replicas }}
+  image: {{ .Values.rabbitmqCluster.image | quote }}
+  persistence:
+    storage: {{ .Values.rabbitmqCluster.persistence.storage | quote }}
+    {{- with .Values.rabbitmqCluster.persistence.storageClassName }}
+    storageClassName: {{ . | quote }}
+    {{- end }}
+  resources:
+    {{- toYaml .Values.rabbitmqCluster.resources | nindent 4 }}
+  secretBackend:
+    externalSecret:
+      name: {{ .Values.externalSecrets.rabbitmq.name }}
+  {{- with .Values.rabbitmqCluster.additionalConfig }}
+  rabbitmq:
+    additionalConfig: |
+{{ . | indent 6 }}
+  {{- end }}

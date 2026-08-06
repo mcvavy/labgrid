@@ -1,4 +1,4 @@
-rabbitmq:
+rabbitmqCluster:
   persistence:
-    storageClass: synology-iscsi-delete-wffc
-    size: 5Gi
+    storageClassName: synology-iscsi-delete-wffc
+    storage: 5Gi

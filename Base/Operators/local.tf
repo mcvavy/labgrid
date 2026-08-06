@@ -29,6 +29,14 @@ locals {
     repository    = "https://charts.external-secrets.io"
   }
 
+  rabbitmqClusterOperatorSettings = {
+    name          = "rabbitmq-cluster-operator"
+    namespace     = "rabbitmq-system"
+    chart_version = "0.5.5"
+    repository    = "oci://registry-1.docker.io/cloudpirates"
+    chart         = "rabbitmq-cluster-operator"
+  }
+
   # Pins match Hetzner (NGF 2.5.0 → Gateway API standard v1.5.1).
   nginxGatewayFabricSettings = {
     version             = "2.5.0"

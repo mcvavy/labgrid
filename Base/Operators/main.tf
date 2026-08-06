@@ -55,6 +55,18 @@ resource "helm_release" "cloudnative-pg-operator" {
   wait = true
 }
 
+resource "helm_release" "rabbitmq_cluster_operator" {
+  name             = local.rabbitmqClusterOperatorSettings.name
+  repository       = local.rabbitmqClusterOperatorSettings.repository
+  chart            = local.rabbitmqClusterOperatorSettings.chart
+  version          = local.rabbitmqClusterOperatorSettings.chart_version
+  namespace        = local.rabbitmqClusterOperatorSettings.namespace
+  create_namespace = true
+
+  wait    = true
+  timeout = 300
+}
+
 ################################################################################
 # Step 1: Fetch CRD YAMLs from GitHub
 ################################################################################

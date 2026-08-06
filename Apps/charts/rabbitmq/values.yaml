@@ -6,22 +6,28 @@ externalSecrets:
     kind: ClusterSecretStore
   rabbitmq:
     name: rabbitmq-credentials
-    passwordKey: password
+    # AKV keys (password + cookie). Template adds operator keys username / default_user.conf / .erlang.cookie.
     remotePasswordKey: platform-rabbitmq-password
-    erlangCookieKey: erlang-cookie
     remoteErlangCookieKey: platform-rabbitmq-erlang-cookie
-
-rabbitmq:
-  replicaCount: 1
-  auth:
-    enabled: true
     username: admin
-    existingSecret: rabbitmq-credentials
-    existingPasswordKey: password
-    existingErlangCookieKey: erlang-cookie
+
+rabbitmqCluster:
+  name: rabbitmq
+  # Odd replica count required for broker/quorum HA (operator docs).
+  replicas: 3
+  # Required: CloudPirates operator chart leaves ENABLE_WEBHOOKS=false (no image defaulting).
+  image: docker.io/library/rabbitmq:4.3.4-management-alpine
   persistence:
-    enabled: true
-    storageClass: synology-iscsi-delete-wffc
-    size: 5Gi
-  service:
-    type: ClusterIP
+    storageClassName: synology-iscsi-delete-wffc
+    storage: 5Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  # Node-wide DQT + migration helper: https://www.rabbitmq.com/docs/vhosts#node-wide-default-queue-type-node-wide-dqt
+  additionalConfig: |
+    default_queue_type = quorum
+    quorum_queue.property_equivalence.relaxed_checks_on_redeclaration = true
