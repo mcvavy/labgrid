@@ -1,11 +1,13 @@
 ################################################################################
-# Gateway API (standard channel) + NGINX Gateway Fabric CRDs
+# Gateway API (standard + experimental TCPRoute) + NGINX Gateway Fabric CRDs
 # Applied via data.http + kubectl_manifest (same pattern as CSI snapshot CRDs).
-# Pin: NGF v2.5.0 → Gateway API v1.5.1 (matches Hetzner).
+# Pin: NGF v2.5.0 → Gateway API v1.5.1. TCPRoute needs experimental channel CRD
+# and nginxGateway.gwAPIExperimentalFeatures.enable on the NGF Helm release.
 ################################################################################
 
 locals {
-  gateway_api_crd_base = "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/${local.nginxGatewayFabricSettings.gateway_api_version}/config/crd/standard"
+  gateway_api_crd_standard_base     = "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/${local.nginxGatewayFabricSettings.gateway_api_version}/config/crd/standard"
+  gateway_api_crd_experimental_base = "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/${local.nginxGatewayFabricSettings.gateway_api_version}/config/crd/experimental"
   gateway_api_crd_files = [
     "gateway.networking.k8s.io_backendtlspolicies.yaml",
     "gateway.networking.k8s.io_gatewayclasses.yaml",
@@ -16,12 +18,15 @@ locals {
     "gateway.networking.k8s.io_referencegrants.yaml",
     "gateway.networking.k8s.io_tlsroutes.yaml",
   ]
+  gateway_api_experimental_crd_files = [
+    "gateway.networking.k8s.io_tcproutes.yaml",
+  ]
 }
 
 data "http" "gateway_api_crds" {
   for_each = toset(local.gateway_api_crd_files)
   method   = "GET"
-  url      = "${local.gateway_api_crd_base}/${each.value}"
+  url      = "${local.gateway_api_crd_standard_base}/${each.value}"
 }
 
 resource "kubectl_manifest" "gateway_api_crds" {
@@ -32,10 +37,26 @@ resource "kubectl_manifest" "gateway_api_crds" {
   force_conflicts   = true
 }
 
+data "http" "gateway_api_experimental_crds" {
+  for_each = toset(local.gateway_api_experimental_crd_files)
+  method   = "GET"
+  url      = "${local.gateway_api_crd_experimental_base}/${each.value}"
+}
+
+resource "kubectl_manifest" "gateway_api_experimental_crds" {
+  for_each = data.http.gateway_api_experimental_crds
+
+  yaml_body         = each.value.response_body
+  server_side_apply = true
+  force_conflicts   = true
+
+  depends_on = [kubectl_manifest.gateway_api_crds]
+}
+
 # ValidatingAdmissionPolicy + Binding (multi-doc)
 data "http" "gateway_api_vap_safe_upgrades" {
   method = "GET"
-  url    = "${local.gateway_api_crd_base}/gateway.networking.k8s.io_vap_safeupgrades.yaml"
+  url    = "${local.gateway_api_crd_standard_base}/gateway.networking.k8s.io_vap_safeupgrades.yaml"
 }
 
 locals {
@@ -79,5 +100,8 @@ resource "kubectl_manifest" "nginx_gateway_fabric_crds" {
   server_side_apply = true
   force_conflicts   = true
 
-  depends_on = [kubectl_manifest.gateway_api_crds]
+  depends_on = [
+    kubectl_manifest.gateway_api_crds,
+    kubectl_manifest.gateway_api_experimental_crds,
+  ]
 }

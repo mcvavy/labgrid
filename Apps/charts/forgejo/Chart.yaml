@@ -1,0 +1,19 @@
+apiVersion: v2
+name: forgejo
+description: Forgejo git forge with CloudNativePG (Azure backups) for Labgrid
+type: application
+version: 0.1.0
+appVersion: "15.0.6"
+dependencies:
+  - name: forgejo
+    version: 17.1.4
+    repository: oci://code.forgejo.org/forgejo-helm
+  - name: cluster
+    alias: pgcluster
+    enabled: true
+    version: 0.6.0
+    repository: https://cloudnative-pg.github.io/charts
+maintainers:
+  - name: LabGrid Labs
+    email: admin@labgrid.net
+    url: blog.labgrid.net

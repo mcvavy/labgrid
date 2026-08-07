@@ -99,5 +99,9 @@ locals {
     tranzrmoves_gateway_hostname = "*.tranzrmoves.com"
     tranzrmoves_tls_secret_name  = "tranzrmoves-wildcard-tls"
     tranzrmoves_cluster_issuer   = "tranzr-letsencrypt-production"
+
+    # Forgejo Git SSH (TCPRoute) on the shared Gateway VIP.
+    forgejo_ssh_listener = "forgejo-ssh"
+    forgejo_ssh_port     = 2222
   }
 }

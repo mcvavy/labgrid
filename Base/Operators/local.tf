@@ -37,7 +37,8 @@ locals {
     chart         = "rabbitmq-cluster-operator"
   }
 
-  # Pins match Hetzner (NGF 2.5.0 → Gateway API standard v1.5.1).
+  # Pins match Hetzner (NGF 2.5.0 → Gateway API v1.5.1).
+  # Labgrid also installs experimental TCPRoute CRD for Forgejo SSH.
   nginxGatewayFabricSettings = {
     version             = "2.5.0"
     gateway_api_version = "v1.5.1"

@@ -2,6 +2,8 @@
 # NGINX Gateway Fabric + shared labgrid-gateway + smoke HTTPRoute
 # Dual-run with ingress-nginx (192.168.1.204). Gateway VIP: 192.168.1.205.
 # CRDs + cert-manager --enable-gateway-api come from Base/Operators.
+# TCP listener forgejo-ssh:2222 requires experimental TCPRoute CRD + NGF
+# nginxGateway.gwAPIExperimentalFeatures.enable (see values/nginx-gateway-fabric).
 ################################################################################
 
 resource "helm_release" "nginx_gateway_fabric" {
@@ -97,6 +99,22 @@ resource "kubernetes_manifest" "labgrid_gateway" {
             namespaces = {
               from = "All"
             }
+          }
+        },
+        {
+          name     = local.nginxGatewayFabricSettings.forgejo_ssh_listener
+          port     = local.nginxGatewayFabricSettings.forgejo_ssh_port
+          protocol = "TCP"
+          allowedRoutes = {
+            namespaces = {
+              from = "All"
+            }
+            kinds = [
+              {
+                group = "gateway.networking.k8s.io"
+                kind  = "TCPRoute"
+              }
+            ]
           }
         }
       ]

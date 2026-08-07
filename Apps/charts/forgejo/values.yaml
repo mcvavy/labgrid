@@ -1,0 +1,189 @@
+# Shared defaults; production overrides in values-production.yaml.
+externalSecrets:
+  secretStoreRef:
+    name: azure-kv-cluster-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+
+smtp:
+  enabled: true
+  secretName: forgejo-smtp
+  from: git@tranzrmoves.com
+  host: smtp.azurecomm.net
+  port: "587"
+  protocol: smtp+starttls
+  remoteUsernameKey: acs-smtp-username
+  remotePasswordKey: acs-smtp-password
+
+redis:
+  enabled: true
+  secretName: forgejo-redis-config
+  host: redis.redis-system.svc.cluster.local
+  port: "6379"
+  remotePasswordKey: platform-redis-password
+
+# Subchart: oci://code.forgejo.org/forgejo-helm/forgejo
+forgejo:
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: synology-iscsi-delete
+
+  # Ingress replaced by Gateway API HTTPRoute (mutually exclusive in upstream chart).
+  ingress:
+    enabled: false
+
+  httpRoute:
+    enabled: true
+    terminate: true
+    parentRefs:
+      - name: labgrid-gateway
+        namespace: nginx-gateway
+        sectionName: http
+      - name: labgrid-gateway
+        namespace: nginx-gateway
+        sectionName: https
+    hostnames:
+      - git.labgrid.net
+    matches:
+      path:
+        type: PathPrefix
+        value: /
+
+  tcpRoute:
+    enabled: true
+    parentRefs:
+      - name: labgrid-gateway
+        namespace: nginx-gateway
+        sectionName: forgejo-ssh
+
+  service:
+    ssh:
+      type: ClusterIP
+      port: 22
+
+  gitea:
+    admin:
+      # "admin" is reserved by Forgejo (PoC finding).
+      username: forgejoadmin
+      existingSecret: forgejo-admin
+      passwordMode: initialOnlyNoReset
+
+    additionalConfigSources:
+      - secret:
+          secretName: forgejo-smtp-config
+      - secret:
+          secretName: forgejo-redis-config
+
+    additionalConfigFromEnvs:
+      - name: FORGEJO__DATABASE__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-pgcluster-app
+            key: password
+
+    config:
+      APP_NAME: "Labgrid Forgejo"
+      server:
+        DOMAIN: git.labgrid.net
+        ROOT_URL: https://git.labgrid.net/
+        HTTP_PORT: 3000
+        SSH_DOMAIN: git.labgrid.net
+        SSH_PORT: 2222
+      database:
+        DB_TYPE: postgres
+        HOST: forgejo-pgcluster-rw:5432
+        NAME: forgejo
+        USER: forgejo
+      indexer:
+        REPO_INDEXER_ENABLED: true
+      service:
+        DISABLE_REGISTRATION: true
+        ENABLE_NOTIFY_MAIL: true
+      actions:
+        ENABLED: false
+      mailer:
+        ENABLED: true
+        FROM: git@tranzrmoves.com
+        PROTOCOL: smtp+starttls
+        SMTP_ADDR: smtp.azurecomm.net
+        SMTP_PORT: 587
+
+pgcluster:
+  enabled: true
+  type: postgresql
+
+  version:
+    postgresql: "17"
+
+  mode: standalone
+
+  cluster:
+    instances: 1
+    imageName: "ghcr.io/cloudnative-pg/postgresql:17.2"
+    imagePullPolicy: IfNotPresent
+
+    storage:
+      size: 20Gi
+      storageClass: synology-iscsi-delete
+
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1"
+
+    enableSuperuserAccess: true
+    enablePDB: true
+
+    initdb:
+      database: "forgejo"
+      owner: "forgejo"
+
+  backups:
+    enabled: true
+    destinationPath: "https://labgrid.blob.core.windows.net/forgejo-pg-backup"
+    provider: azure
+    azure:
+      path: "/"
+      connectionString: ""
+      storageAccount: ""
+      storageKey: ""
+      storageSasToken: ""
+      containerName: ""
+      serviceName: blob
+      inheritFromAzureAD: false
+    secret:
+      create: false
+      name: "azure-credential"
+    wal:
+      compression: gzip
+      encryption: AES256
+      maxParallel: 1
+    data:
+      compression: gzip
+      encryption: AES256
+      jobs: 2
+    scheduledBackups:
+      - name: scheduled-backup
+        schedule: "0 0 0 * * *"
+        backupOwnerReference: self
+        method: barmanObjectStore
+    retentionPolicy: "14d"
+
+  externalSecretBackupCredentials:
+    enabled: true
+    name: azure-credential
+    refreshInterval: "1h"
+    secretStoreRef:
+      name: azure-kv-cluster-store
+      kind: ClusterSecretStore
+    data:
+      - secretKey: AZURE_STORAGE_ACCOUNT
+        remoteRef:
+          key: labgrid-storage-account-name
+      - secretKey: AZURE_STORAGE_SAS_TOKEN
+        remoteRef:
+          key: forgejo-pg-backup-sas-token
