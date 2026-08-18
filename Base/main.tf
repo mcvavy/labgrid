@@ -266,6 +266,7 @@ stringData:
     - host: ${local.synologyCsiSettings.clientIp}
       port: ${local.synologyCsiSettings.clientPort}
       https: true
+      tlsServerName: "labgrid.synology.me"
       username: ${local.synologyCsiSettings.serviceAccountUsername}
       password: ${local.synologyCsiSettings.serviceAccountPassword}
 YAML
