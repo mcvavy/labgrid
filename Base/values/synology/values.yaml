@@ -1,5 +1,5 @@
 clientInfoSecret:
-  name: "client-info-secret"
+  name: "client-info-secret-v2"
 
 storageClasses:
   iscsi-delete:

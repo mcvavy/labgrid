@@ -252,9 +252,30 @@ resource "kubernetes_manifest" "synology-csi-namespace" {
   }
 }
 
-resource "kubernetes_secret_v1" "client-info-secret" {
+resource "kubectl_manifest" "client-info-secret" {
+  yaml_body  = <<YAML
+apiVersion: v1
+kind: Secret
+metadata:
+  name: client-info-secret
+  namespace: ${local.synologyCsiSettings.namespace}
+type: Opaque
+stringData:
+  client-info.yaml: |
+    clients:
+    - host: ${local.synologyCsiSettings.clientIp}
+      port: ${local.synologyCsiSettings.clientPort}
+      https: true
+      tlsServerName: "labgrid.synology.me"
+      username: ${local.synologyCsiSettings.serviceAccountUsername}
+      password: ${local.synologyCsiSettings.serviceAccountPassword}
+YAML
+  depends_on = [kubernetes_manifest.synology-csi-namespace]
+}
+
+resource "kubernetes_secret_v1" "client-info-secret-v2" {
   metadata {
-    name      = "client-info-secret"
+    name      = "client-info-secret-v2"
     namespace = local.synologyCsiSettings.namespace
   }
 
@@ -310,7 +331,7 @@ resource "helm_release" "synology-csi-chart" {
   wait    = true
   timeout = 300
 
-  depends_on = [kubernetes_secret_v1.client-info-secret]
+  depends_on = [kubernetes_secret_v1.client-info-secret-v2]
 }
 
 resource "kubernetes_storage_class_v1" "synology-iscsi-delete" {
