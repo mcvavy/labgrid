@@ -252,6 +252,9 @@ resource "kubernetes_manifest" "synology-csi-namespace" {
   }
 }
 
+# DEPRECATED: Legacy secret resource kept only to avoid destroy-diff secret exposure in public CI.
+# Active Synology CSI secret is `kubernetes_secret_v1.client-info-secret-v2`.
+# Remove this block only after `terraform state rm kubectl_manifest.client-info-secret`.
 resource "kubectl_manifest" "client-info-secret" {
   yaml_body  = <<YAML
 apiVersion: v1
@@ -286,6 +289,7 @@ resource "kubernetes_secret_v1" "client-info-secret-v2" {
           host     = local.synologyCsiSettings.clientIp
           port     = tonumber(local.synologyCsiSettings.clientPort)
           https    = true
+          tlsServerName = "labgrid.synology.me"
           username = local.synologyCsiSettings.serviceAccountUsername
           password = local.synologyCsiSettings.serviceAccountPassword
         }
