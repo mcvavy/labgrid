@@ -56,7 +56,7 @@ locals {
   synologyCsiSettings = {
     name                   = "synology-csi"
     namespace              = "synology-csi"
-    chart_version          = "0.11.3"
+    chart_version          = "0.10.1"
     repository             = "https://christian-schlichtherle.github.io/synology-csi-chart"
     clientIp               = var.synologyClientIp
     clientPort             = var.synologyClientPort
