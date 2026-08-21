@@ -24,6 +24,10 @@ gha-runner-scale-set:
   controllerServiceAccount:
     namespace: arc-system
     name: arc-gha-rs-controller
+  # Official ARC DinD mode: privileged docker:dind sidecar + DOCKER_HOST on runner.
+  # Needed for Testcontainers / docker CLI jobs without installing Docker on k3s workers.
+  containerMode:
+    type: dind
   template:
     spec:
       affinity:
@@ -42,7 +46,7 @@ gha-runner-scale-set:
           command:
             - /home/runner/run.sh
           resources:
-            # CI starts 3 Next standalone servers + Chromium; 2CPU/6Gi timed out webServer.
+            # Runner + Chromium/Next CI, plus nested Testcontainers via DinD.
             requests:
               cpu: "2"
               memory: 4Gi

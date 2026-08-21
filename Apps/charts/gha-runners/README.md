@@ -9,6 +9,7 @@ Org-level GitHub Actions runner scale set named **labgrid** (`runs-on: labgrid`)
 | Controller | `Apps/charts/arc` → `arc-system` |
 | Scale set name | `labgrid` |
 | Capacity | `minRunners: 0`, `maxRunners: 2` |
+| Container mode | `containerMode.type: dind` (privileged Docker-in-Docker sidecar) |
 | Auth Secret | `github-arc-app` (from ExternalSecret → AKV key **names** only) |
 
 ApplicationSet deploys `Apps/charts/<name>` to `<name>-system`, so this chart is `gha-runners` (not `arc-runners`) to avoid a double `-system` suffix while keeping a clear runner chart name.
@@ -37,6 +38,14 @@ DOCKER_CONFIG=/tmp/empty-docker helm dependency update
 ## Custom runner image
 
 Scale set uses `ghcr.io/mcvavy/labgrid-actions-runner:0.1.0` (see `runner-image/`). Rebuild that image before bumping the chart tag. Stock `actions-runner` lacks `libatomic1` (breaks pnpm) and Playwright Chromium libs.
+
+## Docker-in-Docker (DinD)
+
+`containerMode.type: dind` (gha-runner-scale-set 0.14.2) injects a privileged `docker:dind` sidecar and sets `DOCKER_HOST=unix:///var/run/docker.sock` on the runner. k3s workers stay on containerd — Docker is not installed on the host.
+
+Use this for Testcontainers (tranzr-moves-service Integration Test), `docker` CLI in workflows, and similar. Pods must be allowed to run privileged in `gha-runners-system`.
+
+After sync, a runner pod should show containers `runner` + `dind` (and init `init-dind-externals`). Smoke: `docker info` in a `runs-on: labgrid` job.
 
 ## Deploy
 
