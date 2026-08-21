@@ -15,7 +15,7 @@ externalSecrets:
     privateKey: github-arc-private-key
 
 gha-runner-scale-set:
-  githubConfigUrl: https://github.com/tranzr
+  githubConfigUrl: https://github.com/tranz-r
   # Pre-defined Secret name created by ExternalSecret (sync-wave -1).
   githubConfigSecret: github-arc-app
   runnerScaleSetName: labgrid

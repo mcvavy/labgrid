@@ -16,7 +16,7 @@ externalSecrets:
 
 # Subchart: oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
 gha-runner-scale-set:
-  githubConfigUrl: https://github.com/tranzr
+  githubConfigUrl: https://github.com/tranz-r
   githubConfigSecret: github-arc-app
   runnerScaleSetName: labgrid
   minRunners: 0

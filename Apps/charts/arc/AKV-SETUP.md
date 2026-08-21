@@ -4,7 +4,7 @@ Labgrid is a **public** repo. Put secret **values** only in Azure Key Vault. Cha
 
 ## GitHub App (preferred)
 
-1. Create a GitHub App under `mcvavy` (or your org).
+1. Create a GitHub App under the **`tranz-r`** organization (Settings → Developer settings → GitHub Apps).
 2. Permissions:
    - **Actions**: Read
    - **Administration**: Read & write (self-hosted runners)
