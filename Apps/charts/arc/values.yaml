@@ -1,0 +1,9 @@
+# Shared defaults; production overrides in values-production.yaml.
+# Subchart: oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+gha-runner-scale-set-controller:
+  replicaCount: 1
+  flags:
+    logLevel: info
+    logFormat: text
+    excludeLabelPropagationPrefixes:
+      - "argocd.argoproj.io/instance"

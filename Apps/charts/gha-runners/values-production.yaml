@@ -1,0 +1,49 @@
+# Production values for Labgrid Argo ApplicationSet (values-production.yaml only).
+# Argo app name: gha-runners → namespace gha-runners-system.
+# Secret *values* live only in Azure Key Vault; this file has key names only.
+
+externalSecrets:
+  enabled: true
+  secretStoreRef:
+    name: azure-kv-cluster-store
+    kind: ClusterSecretStore
+  refreshInterval: "1h"
+  secretName: github-arc-app
+  remoteKeys:
+    appId: github-arc-app-id
+    installationId: github-arc-installation-id
+    privateKey: github-arc-private-key
+
+gha-runner-scale-set:
+  githubConfigUrl: https://github.com/tranzr
+  # Pre-defined Secret name created by ExternalSecret (sync-wave -1).
+  githubConfigSecret: github-arc-app
+  runnerScaleSetName: labgrid
+  minRunners: 0
+  maxRunners: 2
+  controllerServiceAccount:
+    namespace: arc-system
+    name: arc-gha-rs-controller
+  template:
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/control-plane
+                    operator: DoesNotExist
+                  - key: node-role.kubernetes.io/master
+                    operator: DoesNotExist
+      containers:
+        - name: runner
+          image: ghcr.io/actions/actions-runner:latest
+          command:
+            - /home/runner/run.sh
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "2"
+              memory: 6Gi

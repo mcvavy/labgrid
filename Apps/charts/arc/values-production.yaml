@@ -1,0 +1,19 @@
+# Production values for Labgrid Argo ApplicationSet (values-production.yaml only).
+# Argo app name: arc → namespace arc-system (ApplicationSet: {{path.basename}}-system).
+# No secrets in this chart.
+
+gha-runner-scale-set-controller:
+  replicaCount: 1
+  flags:
+    logLevel: info
+    logFormat: text
+    # Avoid Argo instance labels on ephemeral runner resources.
+    excludeLabelPropagationPrefixes:
+      - "argocd.argoproj.io/instance"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
