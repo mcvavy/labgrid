@@ -34,6 +34,10 @@ cd Apps/charts/gha-runners
 DOCKER_CONFIG=/tmp/empty-docker helm dependency update
 ```
 
+## Custom runner image
+
+Scale set uses `ghcr.io/mcvavy/labgrid-actions-runner:0.1.0` (see `runner-image/`). Rebuild that image before bumping the chart tag. Stock `actions-runner` lacks `libatomic1` (breaks pnpm) and Playwright Chromium libs.
+
 ## Deploy
 
-Push to `main` — ApplicationSet syncs `values-production.yaml`. After sync, confirm scale set **labgrid** under org Settings → Actions → Runners.
+Push to `main` — ApplicationSet syncs `values-production.yaml`. After sync, confirm scale set **labgrid** under org Settings → Actions → Runners. Build the custom image via `.github/workflows/arc-runner-image.yml` before runners need the new tag.

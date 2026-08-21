@@ -37,7 +37,8 @@ gha-runner-scale-set:
                     operator: DoesNotExist
       containers:
         - name: runner
-          image: ghcr.io/actions/actions-runner:latest
+          image: ghcr.io/mcvavy/labgrid-actions-runner:0.1.0
+          imagePullPolicy: IfNotPresent
           command:
             - /home/runner/run.sh
           resources:
