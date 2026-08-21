@@ -42,9 +42,10 @@ gha-runner-scale-set:
           command:
             - /home/runner/run.sh
           resources:
+            # CI starts 3 Next standalone servers + Chromium; 2CPU/6Gi timed out webServer.
             requests:
-              cpu: "1"
-              memory: 2Gi
-            limits:
               cpu: "2"
-              memory: 6Gi
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 12Gi
