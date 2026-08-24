@@ -3,7 +3,7 @@
 core:
   image:
     repository: agentmemory/memory-core
-    tag: "2.0.1-beta.2"
+    tag: "1.0.1-beta.1"
     pullPolicy: IfNotPresent
   httpRoute:
     hostnames:
@@ -21,7 +21,7 @@ core:
 hub:
   image:
     repository: agentmemory/memory-hub
-    tag: "2.0.1-beta.2"
+    tag: "1.0.1-beta.2"
     pullPolicy: IfNotPresent
   panel:
     httpRoute:

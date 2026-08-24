@@ -3,7 +3,7 @@ name: tdai-memory
 description: TencentDB Agent Memory (Memory Core + Memory Hub) for Labgrid
 type: application
 version: 0.1.0
-appVersion: "2.0.1"
+appVersion: "1.0.1"
 maintainers:
   - name: LabGrid Labs
     email: admin@labgrid.net
