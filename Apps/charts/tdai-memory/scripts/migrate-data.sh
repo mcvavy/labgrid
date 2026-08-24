@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Copy archived Core data into the Labgrid PVC (run after Argo sync + PVC Bound).
+# Host layout: ~/agent-memory/data is bind-mounted as /data/tdai-memory in Core.
+# Chart mounts the PVC at /data/tdai-memory, so archive contents of "data/" land at PVC root.
 # Usage: ARCHIVE=/tmp/tdai-memory-data.tgz ./scripts/migrate-data.sh
 set -euo pipefail
 
@@ -17,6 +19,7 @@ fi
 
 kubectl -n "$NS" get pvc "$PVC" >/dev/null
 kubectl -n "$NS" scale "deploy/${DEPLOY}" --replicas=0
+kubectl -n "$NS" rollout status "deploy/${DEPLOY}" --timeout=120s || true
 
 kubectl -n "$NS" delete pod "$POD" --ignore-not-found --wait=true 2>/dev/null || true
 kubectl -n "$NS" run "$POD" --restart=Never --image=busybox:1.36 \
@@ -43,20 +46,26 @@ kubectl -n "$NS" cp "$ARCHIVE" "${POD}:/tmp/tdai-memory-data.tgz"
 kubectl -n "$NS" exec "$POD" -- sh -c '
   set -e
   cd /data
-  tar xzf /tmp/tdai-memory-data.tgz
-  if [ -d data ] && [ ! -d tdai-memory ]; then
-    mkdir -p tdai-memory
-    mv data/* tdai-memory/ 2>/dev/null || true
-    rmdir data 2>/dev/null || true
+  # Preserve any first-boot empty store, then replace with host archive contents
+  rm -rf /data/.migrate-old
+  mkdir -p /data/.migrate-old
+  for x in * .[!.]*; do
+    [ "$x" = ".migrate-old" ] && continue
+    [ -e "$x" ] || continue
+    mv "$x" /data/.migrate-old/ 2>/dev/null || true
+  done
+  mkdir -p /tmp/extract
+  tar xzf /tmp/tdai-memory-data.tgz -C /tmp/extract
+  if [ -d /tmp/extract/data ]; then
+    cp -a /tmp/extract/data/. /data/
+  else
+    cp -a /tmp/extract/. /data/
   fi
-  # Host bind-mount was ~/agent-memory/data → /data/tdai-memory; archive root is often "data/"
-  if [ -d data ] && [ -d tdai-memory ]; then
-    echo "both data/ and tdai-memory/ present — inspect before continuing" >&2
-    ls -la
-    exit 1
-  fi
-  ls -la
-  ls -la tdai-memory 2>/dev/null || ls -la
+  rm -rf /tmp/extract
+  echo "PVC root after migrate:"
+  ls -la /data
+  echo "sample:"
+  ls -la /data/conversations /data/profiles /data/vectors.db 2>/dev/null || ls -la /data | head -20
 '
 
 kubectl -n "$NS" delete pod "$POD" --wait=true
