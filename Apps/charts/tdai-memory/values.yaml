@@ -14,7 +14,7 @@ core:
   replicaCount: 1
   image:
     repository: agentmemory/memory-core
-    tag: "2.0.1-beta.2"
+    tag: "1.0.1-beta.1"
     pullPolicy: IfNotPresent
   service:
     port: 8420
@@ -48,7 +48,7 @@ hub:
   replicaCount: 1
   image:
     repository: agentmemory/memory-hub
-    tag: "2.0.1-beta.2"
+    tag: "1.0.1-beta.2"
     pullPolicy: IfNotPresent
   panel:
     service:
