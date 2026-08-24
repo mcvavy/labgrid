@@ -109,6 +109,50 @@ externalSecrets:
     deepseekBaseUrl: ""
     deepseekModel: ""
 
+# Offline-ish PVC tar → Azure Blob (see templates/backup-*.yaml)
+backup:
+  enabled: false
+  schedule: "0 3 * * *"
+  timeZone: UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 7200
+  # Brief outage while Core/Hub are scaled to 0 so RWO PVCs can be mounted consistently
+  quiesceTimeoutSeconds: 300
+  retentionDays: 30
+  destination:
+    storageAccount: labgrid
+    container: tdai-memory-backup
+    corePrefix: core
+    hubPrefix: hub
+  images:
+    kubectl:
+      repository: bitnami/kubectl
+      tag: "1.31.4"
+      pullPolicy: IfNotPresent
+    azureCli:
+      repository: mcr.microsoft.com/azure-cli
+      tag: "2.67.0"
+      pullPolicy: IfNotPresent
+  externalSecret:
+    enabled: true
+    refreshInterval: 1h
+    targetSecretName: tdai-memory-backup-credentials
+    secretStoreRef:
+      name: azure-kv-cluster-store
+      kind: ClusterSecretStore
+    # AKV secret names only
+    keys:
+      # SAS for container tdai-memory-backup (read/write/list/delete as needed)
+      sasToken: tdai-memory-backup-sas-token
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
 podSecurityContext: {}
 securityContext: {}
 nodeSelector: {}

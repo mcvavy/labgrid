@@ -28,6 +28,7 @@ Create these secrets in the vault backed by `ClusterSecretStore` `azure-kv-clust
 | `tdai-deepseek-api-key` | Hub (and Core) `LLM_API_KEY` |
 | `tdai-deepseek-base-url` | optional; default `https://api.deepseek.com/v1` from values |
 | `tdai-deepseek-model` | optional; default `deepseek-v4-flash` from values |
+| `tdai-memory-backup-sas-token` | SAS for Blob container `tdai-memory-backup` (backup CronJob) |
 
 Generate a strong random gateway API key (do **not** use empty/`local` — Core is publicly reachable).
 
@@ -36,6 +37,11 @@ Example (Azure CLI):
 ```bash
 az keyvault secret set --vault-name labgrid --name tdai-gateway-api-key --value "$(openssl rand -hex 32)"
 az keyvault secret set --vault-name labgrid --name tdai-deepseek-api-key --value "<deepseek-api-key>"
+
+# Blob container + SAS (same storage account pattern as Forgejo/linkding PG backups)
+az storage container create --account-name labgrid --name tdai-memory-backup --auth-mode login
+# Create a container SAS (read/write/list/delete), then:
+az keyvault secret set --vault-name labgrid --name tdai-memory-backup-sas-token --value "<sas-token-without-leading-?>"
 ```
 
 ## Architecture notes
@@ -97,8 +103,59 @@ curl -fsS https://memory-hub.labgrid.net/health
 curl -fsS https://memory-ks.labgrid.net/health
 ```
 
+## Backup (PVC → Azure Blob)
+
+Daily CronJob (03:00 UTC by default) scales Core/Hub to **0**, tars both PVCs, uploads to Azure Blob, prunes old blobs, then scales back to **1**. Brief MCP outage during the job is expected (SQLite consistency).
+
+| Item | Value |
+|------|-------|
+| CronJob | `tdai-memory-backup` |
+| Container | `labgrid` / `tdai-memory-backup` |
+| Blobs | `core/tdai-core-<ts>.tgz`, `hub/tdai-hub-<ts>.tgz` |
+| AKV | `tdai-memory-backup-sas-token` |
+| Toggle | `backup.enabled` in values (`true` in `values-production.yaml`) |
+
+### Review rendered manifests
+
+```bash
+cd Apps/charts/tdai-memory
+helm template tdai-memory . -f values.yaml -f values-production.yaml -n tdai-memory-system \
+  --show-only templates/backup-rbac.yaml \
+  --show-only templates/backup-external-secret.yaml \
+  --show-only templates/backup-configmap.yaml \
+  --show-only templates/backup-cronjob.yaml
+```
+
+Or write a reviewable dump:
+
+```bash
+./scripts/render-backup-manifests.sh > /tmp/tdai-backup-manifests.yaml
+```
+
+### Manual trigger
+
+```bash
+kubectl -n tdai-memory-system create job --from=cronjob/tdai-memory-backup tdai-backup-manual-$(date +%s)
+kubectl -n tdai-memory-system logs -f job/tdai-backup-manual-... -c backup
+```
+
+### Restore (DR / new cluster)
+
+1. Sync chart + recreate AKV secrets (gateway key, DeepSeek, backup SAS).
+2. Download and unpack into PVCs:
+
+```bash
+export SAS_TOKEN='<same as AKV tdai-memory-backup-sas-token>'
+./Apps/charts/tdai-memory/scripts/restore-from-blob.sh list
+./Apps/charts/tdai-memory/scripts/restore-from-blob.sh restore-latest
+# or: CORE_TS=... HUB_TS=... ./scripts/restore-from-blob.sh restore
+```
+
+3. Smoke health + MCP bearer / team-agent IDs from `~/agent-memory/.env`.
+
 ## Out of scope
 
 - Memory Proxy (`:8096`)
 - Multi-replica / Redis Core service mode
 - Staging ApplicationSet
+- Velero / K8up (cluster-wide backup platform)

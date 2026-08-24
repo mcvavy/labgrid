@@ -61,3 +61,18 @@ externalSecrets:
     deepseekApiKey: tdai-deepseek-api-key
     deepseekBaseUrl: ""
     deepseekModel: ""
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  timeZone: UTC
+  retentionDays: 30
+  destination:
+    storageAccount: labgrid
+    container: tdai-memory-backup
+    corePrefix: core
+    hubPrefix: hub
+  externalSecret:
+    enabled: true
+    keys:
+      sasToken: tdai-memory-backup-sas-token
