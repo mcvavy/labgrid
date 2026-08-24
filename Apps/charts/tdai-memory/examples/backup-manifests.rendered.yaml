@@ -1,0 +1,349 @@
+---
+# Source: tdai-memory/templates/backup-rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tdai-memory-backup
+  labels:
+    helm.sh/chart: tdai-memory-0.2.0
+    app.kubernetes.io/name: tdai-memory
+    app.kubernetes.io/instance: tdai-memory
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backup
+---
+# Source: tdai-memory/templates/backup-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tdai-memory-backup
+  labels:
+    helm.sh/chart: tdai-memory-0.2.0
+    app.kubernetes.io/name: tdai-memory
+    app.kubernetes.io/instance: tdai-memory
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backup
+rules:
+  # Quiesce / resume Memory Core + Hub so RWO PVCs can be mounted for a consistent tar
+  - apiGroups: ["apps"]
+    resources: ["deployments", "deployments/scale"]
+    verbs: ["get", "list", "patch", "update"]
+    resourceNames:
+      - "tdai-memory-core"
+      - "tdai-memory-hub"
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch"]
+---
+# Source: tdai-memory/templates/backup-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tdai-memory-backup
+  labels:
+    helm.sh/chart: tdai-memory-0.2.0
+    app.kubernetes.io/name: tdai-memory
+    app.kubernetes.io/instance: tdai-memory
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backup
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tdai-memory-backup
+subjects:
+  - kind: ServiceAccount
+    name: tdai-memory-backup
+    namespace: tdai-memory-system
+---
+# Source: tdai-memory/templates/backup-external-secret.yaml
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: tdai-memory-backup-credentials
+  labels:
+    helm.sh/chart: tdai-memory-0.2.0
+    app.kubernetes.io/name: tdai-memory
+    app.kubernetes.io/instance: tdai-memory
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backup
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: azure-kv-cluster-store
+    kind: ClusterSecretStore
+  target:
+    name: tdai-memory-backup-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: sas-token
+      remoteRef:
+        key: tdai-memory-backup-sas-token
+---
+# Source: tdai-memory/templates/backup-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tdai-memory-backup-script
+  labels:
+    helm.sh/chart: tdai-memory-0.2.0
+    app.kubernetes.io/name: tdai-memory
+    app.kubernetes.io/instance: tdai-memory
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backup
+data:
+  quiesce.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    NS="${NAMESPACE}"
+    CORE_DEPLOY="${CORE_DEPLOY}"
+    HUB_DEPLOY="${HUB_DEPLOY}"
+    TIMEOUT="${QUIESCE_TIMEOUT_SECONDS}"
+
+    echo "Quiescing deployments in ${NS} (timeout=${TIMEOUT}s)"
+    kubectl -n "${NS}" scale "deploy/${CORE_DEPLOY}" --replicas=0
+    kubectl -n "${NS}" scale "deploy/${HUB_DEPLOY}" --replicas=0
+
+    echo "Waiting for Core/Hub pods to terminate..."
+    end=$((SECONDS + TIMEOUT))
+    while true; do
+      core_count="$(kubectl -n "${NS}" get pods -l app.kubernetes.io/component=core --no-headers 2>/dev/null | wc -l | tr -d ' ')"
+      hub_count="$(kubectl -n "${NS}" get pods -l app.kubernetes.io/component=hub --no-headers 2>/dev/null | wc -l | tr -d ' ')"
+      echo "  core_pods=${core_count} hub_pods=${hub_count}"
+      if [[ "${core_count}" == "0" && "${hub_count}" == "0" ]]; then
+        break
+      fi
+      if (( SECONDS >= end )); then
+        echo "Timed out waiting for pods to terminate" >&2
+        exit 1
+      fi
+      sleep 5
+    done
+
+    cp "$(command -v kubectl)" /shared/kubectl
+    chmod 755 /shared/kubectl
+    echo "Quiesce complete; kubectl copied to /shared/kubectl"
+
+  backup.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    NS="${NAMESPACE}"
+    CORE_DEPLOY="${CORE_DEPLOY}"
+    HUB_DEPLOY="${HUB_DEPLOY}"
+    ACCOUNT="${AZURE_STORAGE_ACCOUNT}"
+    CONTAINER="${AZURE_STORAGE_CONTAINER}"
+    CORE_PREFIX="${CORE_PREFIX}"
+    HUB_PREFIX="${HUB_PREFIX}"
+    RETENTION_DAYS="${RETENTION_DAYS}"
+    TS="$(date -u +%Y-%m-%dT%H%M%SZ)"
+
+    # az CLI expects SAS without a leading '?'
+    SAS_RAW="$(cat /secrets/sas-token)"
+    SAS_RAW="${SAS_RAW#"${SAS_RAW%%[![:space:]]*}"}"
+    SAS_RAW="${SAS_RAW%"${SAS_RAW##*[![:space:]]}"}"
+    if [[ "${SAS_RAW}" == \?* ]]; then
+      SAS="${SAS_RAW:1}"
+    else
+      SAS="${SAS_RAW}"
+    fi
+
+    KUBECTL="${KUBECTL_BIN:-/shared/kubectl}"
+    WORK=/work
+    mkdir -p "${WORK}"
+
+    cleanup() {
+      echo "Resuming deployments..."
+      "${KUBECTL}" -n "${NS}" scale "deploy/${CORE_DEPLOY}" --replicas=1 || true
+      "${KUBECTL}" -n "${NS}" scale "deploy/${HUB_DEPLOY}" --replicas=1 || true
+    }
+    trap cleanup EXIT
+
+    echo "Creating archives at ${TS}"
+    tar -C /pvc/core -czf "${WORK}/tdai-core-${TS}.tgz" .
+    tar -C /pvc/hub -czf "${WORK}/tdai-hub-${TS}.tgz" .
+    ls -lh "${WORK}"
+
+    CORE_BLOB="${CORE_PREFIX}/tdai-core-${TS}.tgz"
+    HUB_BLOB="${HUB_PREFIX}/tdai-hub-${TS}.tgz"
+
+    echo "Uploading to ${ACCOUNT}/${CONTAINER}"
+    az storage blob upload \
+      --account-name "${ACCOUNT}" \
+      --container-name "${CONTAINER}" \
+      --name "${CORE_BLOB}" \
+      --file "${WORK}/tdai-core-${TS}.tgz" \
+      --sas-token "${SAS}" \
+      --overwrite true
+
+    az storage blob upload \
+      --account-name "${ACCOUNT}" \
+      --container-name "${CONTAINER}" \
+      --name "${HUB_BLOB}" \
+      --file "${WORK}/tdai-hub-${TS}.tgz" \
+      --sas-token "${SAS}" \
+      --overwrite true
+
+    echo "Pruning blobs older than ${RETENTION_DAYS} days under ${CORE_PREFIX}/ and ${HUB_PREFIX}/"
+    cutoff="$(date -u -d "-${RETENTION_DAYS} days" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-"${RETENTION_DAYS}"d +%Y-%m-%dT%H:%M:%SZ)"
+    for prefix in "${CORE_PREFIX}" "${HUB_PREFIX}"; do
+      az storage blob list \
+        --account-name "${ACCOUNT}" \
+        --container-name "${CONTAINER}" \
+        --prefix "${prefix}/" \
+        --sas-token "${SAS}" \
+        --query "[?properties.lastModified < '${cutoff}'].name" \
+        -o tsv | while read -r name; do
+          [[ -z "${name}" ]] && continue
+          echo "Deleting stale blob: ${name}"
+          az storage blob delete \
+            --account-name "${ACCOUNT}" \
+            --container-name "${CONTAINER}" \
+            --name "${name}" \
+            --sas-token "${SAS}" || true
+        done
+    done
+
+    echo "Backup finished: ${CORE_BLOB} ${HUB_BLOB}"
+---
+# Source: tdai-memory/templates/backup-cronjob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: tdai-memory-backup
+  labels:
+    helm.sh/chart: tdai-memory-0.2.0
+    app.kubernetes.io/name: tdai-memory
+    app.kubernetes.io/instance: tdai-memory
+    app.kubernetes.io/version: "1.0.1"
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: backup
+spec:
+  schedule: "0 3 * * *"
+  timeZone: "UTC"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 7200
+  jobTemplate:
+    metadata:
+      labels:
+        helm.sh/chart: tdai-memory-0.2.0
+        app.kubernetes.io/name: tdai-memory
+        app.kubernetes.io/instance: tdai-memory
+        app.kubernetes.io/version: "1.0.1"
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: backup
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 7200
+      template:
+        metadata:
+          labels:
+            helm.sh/chart: tdai-memory-0.2.0
+            app.kubernetes.io/name: tdai-memory
+            app.kubernetes.io/instance: tdai-memory
+            app.kubernetes.io/version: "1.0.1"
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/component: backup
+        spec:
+          serviceAccountName: tdai-memory-backup
+          restartPolicy: Never
+          # 1) Scale Core/Hub to 0 so RWO PVCs are free and SQLite is quiescent
+          # 2) Mount PVCs, tar, upload to Azure Blob, prune, scale back to 1
+          initContainers:
+            - name: quiesce
+              image: "bitnami/kubectl:1.31.4"
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/bash", "/scripts/quiesce.sh"]
+              env:
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: CORE_DEPLOY
+                  value: "tdai-memory-core"
+                - name: HUB_DEPLOY
+                  value: "tdai-memory-hub"
+                - name: QUIESCE_TIMEOUT_SECONDS
+                  value: "300"
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: shared
+                  mountPath: /shared
+          containers:
+            - name: backup
+              image: "mcr.microsoft.com/azure-cli:2.67.0"
+              imagePullPolicy: IfNotPresent
+              command: ["/bin/bash", "/scripts/backup.sh"]
+              env:
+                - name: NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: CORE_DEPLOY
+                  value: "tdai-memory-core"
+                - name: HUB_DEPLOY
+                  value: "tdai-memory-hub"
+                - name: AZURE_STORAGE_ACCOUNT
+                  value: "labgrid"
+                - name: AZURE_STORAGE_CONTAINER
+                  value: "tdai-memory-backup"
+                - name: CORE_PREFIX
+                  value: "core"
+                - name: HUB_PREFIX
+                  value: "hub"
+                - name: RETENTION_DAYS
+                  value: "30"
+                - name: KUBECTL_BIN
+                  value: /shared/kubectl
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: shared
+                  mountPath: /shared
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: core-data
+                  mountPath: /pvc/core
+                  readOnly: true
+                - name: hub-data
+                  mountPath: /pvc/hub
+                  readOnly: true
+                - name: work
+                  mountPath: /work
+              resources:
+                limits:
+                  memory: 1Gi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: tdai-memory-backup-script
+                defaultMode: 0755
+            - name: shared
+              emptyDir: {}
+            - name: work
+              emptyDir: {}
+            - name: secrets
+              secret:
+                secretName: tdai-memory-backup-credentials
+            - name: core-data
+              persistentVolumeClaim:
+                claimName: tdai-memory-core-data
+                readOnly: true
+            - name: hub-data
+              persistentVolumeClaim:
+                claimName: tdai-memory-hub-knowledge
+                readOnly: true

@@ -1,0 +1,122 @@
+{{- if .Values.backup.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "tdai-memory.backup.fullname" . }}-script
+  labels:
+    {{- include "tdai-memory.backup.labels" . | nindent 4 }}
+data:
+  quiesce.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+    NS="${NAMESPACE}"
+    CORE_DEPLOY="${CORE_DEPLOY}"
+    HUB_DEPLOY="${HUB_DEPLOY}"
+    TIMEOUT="${QUIESCE_TIMEOUT_SECONDS}"
+
+    echo "Quiescing deployments in ${NS} (timeout=${TIMEOUT}s)"
+    kubectl -n "${NS}" scale "deploy/${CORE_DEPLOY}" --replicas=0
+    kubectl -n "${NS}" scale "deploy/${HUB_DEPLOY}" --replicas=0
+
+    echo "Waiting for Core/Hub pods to terminate..."
+    end=$((SECONDS + TIMEOUT))
+    while true; do
+      core_count="$(kubectl -n "${NS}" get pods -l app.kubernetes.io/component=core --no-headers 2>/dev/null | wc -l | tr -d ' ')"
+      hub_count="$(kubectl -n "${NS}" get pods -l app.kubernetes.io/component=hub --no-headers 2>/dev/null | wc -l | tr -d ' ')"
+      echo "  core_pods=${core_count} hub_pods=${hub_count}"
+      if [[ "${core_count}" == "0" && "${hub_count}" == "0" ]]; then
+        break
+      fi
+      if (( SECONDS >= end )); then
+        echo "Timed out waiting for pods to terminate" >&2
+        exit 1
+      fi
+      sleep 5
+    done
+
+    cp "$(command -v kubectl)" /shared/kubectl
+    chmod 755 /shared/kubectl
+    echo "Quiesce complete; kubectl copied to /shared/kubectl"
+
+  backup.sh: |
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    NS="${NAMESPACE}"
+    CORE_DEPLOY="${CORE_DEPLOY}"
+    HUB_DEPLOY="${HUB_DEPLOY}"
+    ACCOUNT="${AZURE_STORAGE_ACCOUNT}"
+    CONTAINER="${AZURE_STORAGE_CONTAINER}"
+    CORE_PREFIX="${CORE_PREFIX}"
+    HUB_PREFIX="${HUB_PREFIX}"
+    RETENTION_DAYS="${RETENTION_DAYS}"
+    TS="$(date -u +%Y-%m-%dT%H%M%SZ)"
+
+    # az CLI expects SAS without a leading '?'
+    SAS_RAW="$(cat /secrets/sas-token)"
+    SAS_RAW="${SAS_RAW#"${SAS_RAW%%[![:space:]]*}"}"
+    SAS_RAW="${SAS_RAW%"${SAS_RAW##*[![:space:]]}"}"
+    if [[ "${SAS_RAW}" == \?* ]]; then
+      SAS="${SAS_RAW:1}"
+    else
+      SAS="${SAS_RAW}"
+    fi
+
+    KUBECTL="${KUBECTL_BIN:-/shared/kubectl}"
+    WORK=/work
+    mkdir -p "${WORK}"
+
+    cleanup() {
+      echo "Resuming deployments..."
+      "${KUBECTL}" -n "${NS}" scale "deploy/${CORE_DEPLOY}" --replicas=1 || true
+      "${KUBECTL}" -n "${NS}" scale "deploy/${HUB_DEPLOY}" --replicas=1 || true
+    }
+    trap cleanup EXIT
+
+    echo "Creating archives at ${TS}"
+    tar -C /pvc/core -czf "${WORK}/tdai-core-${TS}.tgz" .
+    tar -C /pvc/hub -czf "${WORK}/tdai-hub-${TS}.tgz" .
+    ls -lh "${WORK}"
+
+    CORE_BLOB="${CORE_PREFIX}/tdai-core-${TS}.tgz"
+    HUB_BLOB="${HUB_PREFIX}/tdai-hub-${TS}.tgz"
+
+    echo "Uploading to ${ACCOUNT}/${CONTAINER}"
+    az storage blob upload \
+      --account-name "${ACCOUNT}" \
+      --container-name "${CONTAINER}" \
+      --name "${CORE_BLOB}" \
+      --file "${WORK}/tdai-core-${TS}.tgz" \
+      --sas-token "${SAS}" \
+      --overwrite true
+
+    az storage blob upload \
+      --account-name "${ACCOUNT}" \
+      --container-name "${CONTAINER}" \
+      --name "${HUB_BLOB}" \
+      --file "${WORK}/tdai-hub-${TS}.tgz" \
+      --sas-token "${SAS}" \
+      --overwrite true
+
+    echo "Pruning blobs older than ${RETENTION_DAYS} days under ${CORE_PREFIX}/ and ${HUB_PREFIX}/"
+    cutoff="$(date -u -d "-${RETENTION_DAYS} days" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-"${RETENTION_DAYS}"d +%Y-%m-%dT%H:%M:%SZ)"
+    for prefix in "${CORE_PREFIX}" "${HUB_PREFIX}"; do
+      az storage blob list \
+        --account-name "${ACCOUNT}" \
+        --container-name "${CONTAINER}" \
+        --prefix "${prefix}/" \
+        --sas-token "${SAS}" \
+        --query "[?properties.lastModified < '${cutoff}'].name" \
+        -o tsv | while read -r name; do
+          [[ -z "${name}" ]] && continue
+          echo "Deleting stale blob: ${name}"
+          az storage blob delete \
+            --account-name "${ACCOUNT}" \
+            --container-name "${CONTAINER}" \
+            --name "${name}" \
+            --sas-token "${SAS}" || true
+        done
+    done
+
+    echo "Backup finished: ${CORE_BLOB} ${HUB_BLOB}"
+{{- end }}

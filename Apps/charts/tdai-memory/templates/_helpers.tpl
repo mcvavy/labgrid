@@ -70,3 +70,16 @@ app.kubernetes.io/component: hub
 {{- define "tdai-memory.secrets.name" -}}
 {{- default (printf "%s-credentials" (include "tdai-memory.fullname" .)) .Values.externalSecrets.targetSecretName }}
 {{- end }}
+
+{{- define "tdai-memory.backup.fullname" -}}
+{{- printf "%s-backup" (include "tdai-memory.fullname" .) }}
+{{- end }}
+
+{{- define "tdai-memory.backup.secretName" -}}
+{{- default (printf "%s-backup-credentials" (include "tdai-memory.fullname" .)) .Values.backup.externalSecret.targetSecretName }}
+{{- end }}
+
+{{- define "tdai-memory.backup.labels" -}}
+{{ include "tdai-memory.labels" . }}
+app.kubernetes.io/component: backup
+{{- end }}
