@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tdai-memory.hub.fullname" . }}-knowledge
+  labels:
+    {{- include "tdai-memory.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hub-knowledge
+spec:
+  type: ClusterIP
+  ports:
+    - name: knowledge
+      port: {{ .Values.hub.knowledge.service.port }}
+      targetPort: knowledge
+      protocol: TCP
+  selector:
+    {{- include "tdai-memory.hub.selectorLabels" . | nindent 4 }}

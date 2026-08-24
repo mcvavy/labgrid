@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "tdai-memory.core.fullname" . }}-data
+  labels:
+    {{- include "tdai-memory.core.labels" . | nindent 4 }}
+  {{- with .Values.core.persistentVolumeClaim.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.core.persistentVolumeClaim.accessMode }}
+  volumeMode: {{ .Values.core.persistentVolumeClaim.volumeMode }}
+  resources:
+    requests:
+      storage: {{ .Values.core.persistentVolumeClaim.size }}
+  storageClassName: {{ .Values.core.persistentVolumeClaim.storageClassName }}

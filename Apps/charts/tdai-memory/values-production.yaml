@@ -1,0 +1,63 @@
+# Production overrides for Labgrid (ArgoCD valuesFiles: values.yaml + values-production.yaml)
+
+core:
+  image:
+    repository: agentmemory/memory-core
+    tag: "2.0.1-beta.2"
+    pullPolicy: IfNotPresent
+  httpRoute:
+    hostnames:
+      - memory.labgrid.net
+  persistentVolumeClaim:
+    size: 5Gi
+    storageClassName: synology-iscsi-delete
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+hub:
+  image:
+    repository: agentmemory/memory-hub
+    tag: "2.0.1-beta.2"
+    pullPolicy: IfNotPresent
+  panel:
+    httpRoute:
+      hostnames:
+        - memory-hub.labgrid.net
+  knowledge:
+    httpRoute:
+      hostnames:
+        - memory-ks.labgrid.net
+    publicBaseUrl: https://memory-ks.labgrid.net/v3
+  remoteInstanceProxyUrl: https://memory.labgrid.net
+  persistentVolumeClaim:
+    size: 10Gi
+    storageClassName: synology-iscsi-delete
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+llm:
+  mode: custom
+  protocol: openai
+  baseUrl: https://api.deepseek.com/v1
+  model: deepseek-v4-flash
+
+externalSecrets:
+  enabled: true
+  refreshInterval: 1h
+  secretStoreRef:
+    name: azure-kv-cluster-store
+    kind: ClusterSecretStore
+  targetSecretName: tdai-memory-credentials
+  keys:
+    gatewayApiKey: tdai-gateway-api-key
+    deepseekApiKey: tdai-deepseek-api-key
+    deepseekBaseUrl: ""
+    deepseekModel: ""

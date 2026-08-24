@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tdai-memory.core.fullname" . }}
+  labels:
+    {{- include "tdai-memory.core.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.core.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "tdai-memory.core.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tdai-memory.core.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: memory-core
+          image: "{{ .Values.core.image.repository }}:{{ .Values.core.image.tag }}"
+          imagePullPolicy: {{ .Values.core.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.core.service.port }}
+              protocol: TCP
+          env:
+            - name: TDAI_GATEWAY_HOST
+              value: "0.0.0.0"
+            - name: TDAI_GATEWAY_PORT
+              value: {{ .Values.core.service.port | quote }}
+            - name: TDAI_DATA_DIR
+              value: /data/tdai-memory
+            - name: TDAI_GATEWAY_CONFIG
+              value: /data/config/tdai-gateway.yaml
+            - name: TDAI_GATEWAY_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tdai-memory.secrets.name" . }}
+                  key: gateway-api-key
+            # Optional: same DeepSeek key so extraction can be enabled later without chart churn
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tdai-memory.secrets.name" . }}
+                  key: llm-api-key
+            - name: LLM_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tdai-memory.secrets.name" . }}
+                  key: llm-base-url
+            - name: LLM_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tdai-memory.secrets.name" . }}
+                  key: llm-model
+          volumeMounts:
+            - name: data
+              mountPath: /data/tdai-memory
+            - name: gateway-config
+              mountPath: /data/config
+              readOnly: true
+          {{- with .Values.core.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.core.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.core.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "tdai-memory.core.fullname" . }}-data
+        - name: gateway-config
+          configMap:
+            name: {{ include "tdai-memory.core.fullname" . }}-gateway
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
