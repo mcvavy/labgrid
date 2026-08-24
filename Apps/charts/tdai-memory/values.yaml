@@ -128,8 +128,8 @@ backup:
     hubPrefix: hub
   images:
     kubectl:
-      repository: bitnami/kubectl
-      tag: "1.31.4"
+      repository: alpine/k8s
+      tag: "1.31.13"
       pullPolicy: IfNotPresent
     azureCli:
       repository: mcr.microsoft.com/azure-cli

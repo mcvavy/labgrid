@@ -72,6 +72,11 @@ backup:
     container: tdai-memory-backup
     corePrefix: core
     hubPrefix: hub
+  images:
+    kubectl:
+      repository: alpine/k8s
+      tag: "1.31.13"
+      pullPolicy: IfNotPresent
   externalSecret:
     enabled: true
     keys:
