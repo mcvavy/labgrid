@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tdai-memory.hub.fullname" . }}
+  labels:
+    {{- include "tdai-memory.hub.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.hub.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "tdai-memory.hub.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tdai-memory.hub.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: memory-hub
+          image: "{{ .Values.hub.image.repository }}:{{ .Values.hub.image.tag }}"
+          imagePullPolicy: {{ .Values.hub.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: panel
+              containerPort: {{ .Values.hub.panel.service.port }}
+              protocol: TCP
+            - name: knowledge
+              containerPort: {{ .Values.hub.knowledge.service.port }}
+              protocol: TCP
+          env:
+            - name: PANEL_PORT
+              value: {{ .Values.hub.panel.service.port | quote }}
+            - name: KNOWLEDGE_PORT
+              value: {{ .Values.hub.knowledge.service.port | quote }}
+            - name: KNOWLEDGE_PUBLIC_BASE_URL
+              value: {{ .Values.hub.knowledge.publicBaseUrl | quote }}
+            - name: REMOTE_INSTANCE_ID
+              value: default
+            - name: REMOTE_INSTANCE_NAME
+              value: default
+            - name: REMOTE_INSTANCE_URL
+              value: {{ printf "http://%s:%v" (include "tdai-memory.core.fullname" .) .Values.core.service.port | quote }}
+            - name: REMOTE_INSTANCE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tdai-memory.secrets.name" . }}
+                  key: gateway-api-key
+            - name: REMOTE_INSTANCE_PROXY_URL
+              value: {{ .Values.hub.remoteInstanceProxyUrl | quote }}
+            - name: LLM_MODE
+              value: {{ .Values.llm.mode | quote }}
+            - name: LLM_PROTOCOL
+              value: {{ .Values.llm.protocol | quote }}
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tdai-memory.secrets.name" . }}
+                  key: llm-api-key
+            - name: LLM_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tdai-memory.secrets.name" . }}
+                  key: llm-base-url
+            - name: LLM_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "tdai-memory.secrets.name" . }}
+                  key: llm-model
+            - name: KNOWLEDGE_LLM_BINDING_SYNC
+              value: "0"
+          volumeMounts:
+            - name: knowledge
+              mountPath: /data/knowledge
+          {{- with .Values.hub.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.hub.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.hub.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: knowledge
+          persistentVolumeClaim:
+            claimName: {{ include "tdai-memory.hub.fullname" . }}-knowledge
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

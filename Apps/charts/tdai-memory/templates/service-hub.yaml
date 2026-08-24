@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "tdai-memory.hub.fullname" . }}-panel
+  labels:
+    {{- include "tdai-memory.labels" . | nindent 4 }}
+    app.kubernetes.io/component: hub-panel
+spec:
+  type: ClusterIP
+  ports:
+    - name: panel
+      port: {{ .Values.hub.panel.service.port }}
+      targetPort: panel
+      protocol: TCP
+  selector:
+    {{- include "tdai-memory.hub.selectorLabels" . | nindent 4 }}
