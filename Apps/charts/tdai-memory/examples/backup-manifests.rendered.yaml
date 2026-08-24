@@ -129,6 +129,30 @@ data:
     chmod 755 /shared/kubectl
     echo "Quiesce complete; kubectl copied to /shared/kubectl"
 
+  archive.py: |
+    #!/usr/bin/env python3
+    """Create gzip tarballs of PVC mount roots (azure-cli image has no tar binary)."""
+    import os
+    import tarfile
+
+    def archive_tree(src: str, dest: str) -> None:
+        with tarfile.open(dest, mode="w" + ":gz") as tar:
+            for entry in sorted(os.listdir(src)):
+                if entry in (".", ".."):
+                    continue
+                tar.add(os.path.join(src, entry), arcname=entry)
+        print(f"wrote {dest} size={os.path.getsize(dest)}")
+
+    def main() -> None:
+        ts = os.environ["TS"]
+        work = os.environ.get("WORK", "/work")
+        os.makedirs(work, exist_ok=True)
+        archive_tree("/pvc/core", f"{work}/tdai-core-{ts}.tgz")
+        archive_tree("/pvc/hub", f"{work}/tdai-hub-{ts}.tgz")
+
+    if __name__ == "__main__":
+        main()
+
   backup.sh: |
     #!/usr/bin/env bash
     set -euo pipefail
@@ -141,7 +165,10 @@ data:
     CORE_PREFIX="${CORE_PREFIX}"
     HUB_PREFIX="${HUB_PREFIX}"
     RETENTION_DAYS="${RETENTION_DAYS}"
+    WORK=/work
     TS="$(date -u +%Y-%m-%dT%H%M%SZ)"
+    export TS WORK
+    mkdir -p "${WORK}"
 
     # az CLI expects SAS without a leading '?'
     SAS_RAW="$(cat /secrets/sas-token)"
@@ -154,8 +181,6 @@ data:
     fi
 
     KUBECTL="${KUBECTL_BIN:-/shared/kubectl}"
-    WORK=/work
-    mkdir -p "${WORK}"
 
     cleanup() {
       echo "Resuming deployments..."
@@ -165,8 +190,7 @@ data:
     trap cleanup EXIT
 
     echo "Creating archives at ${TS}"
-    tar -C /pvc/core -czf "${WORK}/tdai-core-${TS}.tgz" .
-    tar -C /pvc/hub -czf "${WORK}/tdai-hub-${TS}.tgz" .
+    python3 /scripts/archive.py
     ls -lh "${WORK}"
 
     CORE_BLOB="${CORE_PREFIX}/tdai-core-${TS}.tgz"
