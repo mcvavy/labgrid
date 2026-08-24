@@ -258,7 +258,7 @@ spec:
           # 2) Mount PVCs, tar, upload to Azure Blob, prune, scale back to 1
           initContainers:
             - name: quiesce
-              image: "bitnami/kubectl:1.31.4"
+              image: "alpine/k8s:1.31.13"
               imagePullPolicy: IfNotPresent
               command: ["/bin/bash", "/scripts/quiesce.sh"]
               env:
