@@ -44,7 +44,7 @@ data:
         enabled: true
         maxResults: 5
         scoreThreshold: 0.3
-        strategy: {{ .Values.core.recallStrategy | default "fts" }}
+        strategy: {{ .Values.core.recallStrategy | default "keyword" }}
         timeoutMs: 5000
       storeBackend: sqlite
       embedding:
