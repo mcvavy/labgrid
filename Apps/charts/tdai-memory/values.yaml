@@ -40,9 +40,9 @@ core:
       port: http
     initialDelaySeconds: 5
     periodSeconds: 10
-  # FTS-first standalone gateway (matches host ~/agent-memory setup)
+  # Keyword recall (Core accepts embedding|keyword|hybrid only; "fts" falls back to hybrid)
   promptMode: code
-  recallStrategy: fts
+  recallStrategy: keyword
 
 hub:
   replicaCount: 1
