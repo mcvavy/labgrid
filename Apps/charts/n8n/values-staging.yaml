@@ -4,7 +4,15 @@ n8nEnvironment:
 - name: DB_TYPE
   value: "postgresdb"
 - name: N8N_PORT
-  value: http
+  value: "5678"
+- name: N8N_PROTOCOL
+  value: "https"
+- name: N8N_HOST
+  value: "automata-stg.labgrid.net"
+- name: N8N_EDITOR_BASE_URL
+  value: "https://automata-stg.labgrid.net/"
+- name: WEBHOOK_URL
+  value: "https://automata-stg.labgrid.net/"
 - name: DB_POSTGRESDB_HOST
   valueFrom:
     secretKeyRef:
@@ -32,17 +40,22 @@ n8nEnvironment:
       key: password
 
 ingress:
+  enabled: false
+
+gateway:
+  name: labgrid-gateway
+  namespace: nginx-gateway
+  sectionNames:
+    - http
+    - https
+
+httpRoute:
   enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-  hosts:
-    - host: n8n-stg.labgrid.net
-      paths:
-        - path: /
-          pathType: ImplementationSpecific
+  hostnames:
+    - automata-stg.labgrid.net
+  path:
+    type: PathPrefix
+    value: /
 
 
 # Additional volumes on the output Deployment definition.
