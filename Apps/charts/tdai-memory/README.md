@@ -51,6 +51,55 @@ az keyvault secret set --vault-name labgrid --name tdai-memory-backup-sas-token 
 - `KNOWLEDGE_PUBLIC_BASE_URL=https://memory-ks.labgrid.net/v3` (required).
 - No Memory Proxy in this chart; agents use MCP → Core HTTPS.
 
+## Scenario upsert overlay (L2 create without kubectl)
+
+Official Memory Core `POST /v3/scenario/write` is **update-only** (404 if the path is missing). Newer prerelease Docker tags (`1.0.2-beta.1` / `latest`) still lack authenticated create.
+
+### Deploy-safe defaults (what Argo uses today)
+
+| Component | Image | Why |
+|-----------|--------|-----|
+| Core | `agentmemory/memory-core:1.0.1` | Public Docker Hub — **will pull** on Labgrid |
+| Hub | `agentmemory/memory-hub:1.0.1-beta.2` | Same pin as current prod — avoids Hub upgrade risk |
+
+There are **no** `imagePullSecrets` on the Core Deployment. Do **not** point values at `ghcr.io/mcvavy/...` until that package exists and is **public**.
+
+### Enabling upsert (second step — after image is public)
+
+Build context: [`core-image/`](core-image/) (thin overlay of `agentmemory/memory-core:1.0.1@sha256:9798254a…`).
+
+1. Merge `core-image/` + workflow [`.github/workflows/tdai-memory-core-image.yml`](../../../.github/workflows/tdai-memory-core-image.yml) to `main` (or run **workflow_dispatch**).
+2. Wait for Actions to push `ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915` and set visibility **public**.
+3. Verify anonymous pull:
+   ```bash
+   docker pull ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915
+   ```
+4. Apply overlay values (or merge into `values-production.yaml`):
+   ```bash
+   # preview
+   helm template tdai-memory . -f values.yaml -f values-production.yaml -f values-overlay-upsert.yaml -n tdai-memory-system
+   ```
+   File: [`values-overlay-upsert.yaml`](values-overlay-upsert.yaml).
+5. Sync Argo; smoke:
+   ```bash
+   curl -fsS -H "Authorization: Bearer $TDAI_GATEWAY_BEARER" \
+     -H 'Content-Type: application/json' -H 'x-tdai-service-id: default' \
+     -d '{"team_id":"...","agent_id":"...","user_id":"...","path":"atoms/smoke-upsert.md","content":"ok","summary":"smoke"}' \
+     https://memory.labgrid.net/v3/scenario/upsert
+   ```
+
+| Item | Value |
+|------|--------|
+| Local build tag | `tdai-memory-core:scenario-upsert-overlay-20260915` |
+| Local digest (Mint host) | `sha256:f4cdd60a4f9dfacdaa80c44560ccb05710cbd7595b0e125b15354f64f20345f1` |
+| GHCR publish | `ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915` |
+| Patched files | `/app/src/gateway/v2-router.ts`, `/app/src/gateway/v2-schemas.ts` |
+| Semantics | last-writer-wins; PVC layout unchanged |
+
+**Rollback Core:** `agentmemory/memory-core:1.0.1` (or prior `1.0.1-beta.1`). Hub stays `1.0.1-beta.2` unless you changed it.
+
+MCP clients (`tdai-mcp`) call upsert first, then fall back to write; they never use kubectl/PVC access. Until the overlay is live, **new** L2 creates still 404 (existing paths can still update via write).
+
 ## Data migration (local → cluster)
 
 Host install was Core-only under `~/agent-memory`.

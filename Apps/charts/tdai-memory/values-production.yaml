@@ -2,8 +2,9 @@
 
 core:
   image:
+    # Deploy-safe: stock Docker Hub 1.0.1 (pullable). Flip to ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915 only after the overlay workflow publishes a public package.
     repository: agentmemory/memory-core
-    tag: "1.0.1-beta.1"
+    tag: "1.0.1"
     pullPolicy: IfNotPresent
   httpRoute:
     hostnames:

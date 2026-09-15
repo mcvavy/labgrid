@@ -1,0 +1,20 @@
+# Optional Argo/values overlay — apply ONLY after GHCR package is public.
+#
+# Prerequisites:
+#   1. Workflow "TDAI Memory Core overlay image" succeeded on main (or manual
+#      workflow_dispatch), OR you pushed locally and set package visibility public.
+#   2. Anonymous pull works:
+#        docker pull ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915
+#
+# Usage (example):
+#   helm template ... -f values.yaml -f values-production.yaml -f values-overlay-upsert.yaml
+# Or merge these keys into values-production.yaml after the pull check.
+#
+# The Core Deployment has no imagePullSecrets — package must stay public
+# (same pattern as labgrid-actions-runner).
+
+core:
+  image:
+    repository: ghcr.io/mcvavy/tdai-memory-core
+    tag: "scenario-upsert-20260915"
+    pullPolicy: IfNotPresent
