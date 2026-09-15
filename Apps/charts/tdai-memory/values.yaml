@@ -13,12 +13,9 @@ gateway:
 core:
   replicaCount: 1
   image:
-    # SAFE DEFAULT for Argo: public Docker Hub (always pullable).
-    # Upsert overlay: after workflow "TDAI Memory Core overlay image" succeeds and
-    # ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915 is public, switch to:
-    #   repository: ghcr.io/mcvavy/labgrid-tdai-memory-core
-    #   tag: "scenario-upsert-20260915"
-    # Do NOT point Argo at GHCR until that package exists and is public (no imagePullSecrets).
+    # SAFE DEFAULT (chart alone): public Docker Hub — always pullable.
+    # Labgrid Argo uses values-production.yaml → GHCR upsert overlay.
+    # Rollback Core: keep this Docker Hub pin (or set tag 1.0.1 explicitly).
     repository: agentmemory/memory-core
     tag: "1.0.1"
     pullPolicy: IfNotPresent
