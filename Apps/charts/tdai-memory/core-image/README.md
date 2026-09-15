@@ -40,13 +40,13 @@ docker build --platform linux/amd64 \
   .
 # Prefer: GitHub Actions workflow "TDAI Memory Core overlay image"
 # Or local:
-#   docker tag ... ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915
+#   docker tag ... ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915
 #   docker push ...
-#   gh api --method PUT .../tdai-memory-core/visibility -f visibility=public
+#   gh api --method PUT .../labgrid-tdai-memory-core/visibility -f visibility=public
 ```
 
 Proposed publish name:  
-`ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915`
+`ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915`
 
 Built locally on 2026-09-15 (linux/amd64), image id / digest:  
 `sha256:f4cdd60a4f9dfacdaa80c44560ccb05710cbd7595b0e125b15354f64f20345f1`

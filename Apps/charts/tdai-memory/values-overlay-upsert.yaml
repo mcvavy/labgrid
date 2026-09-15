@@ -4,7 +4,7 @@
 #   1. Workflow "TDAI Memory Core overlay image" succeeded on main (or manual
 #      workflow_dispatch), OR you pushed locally and set package visibility public.
 #   2. Anonymous pull works:
-#        docker pull ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915
+#        docker pull ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915
 #
 # Usage (example):
 #   helm template ... -f values.yaml -f values-production.yaml -f values-overlay-upsert.yaml
@@ -15,6 +15,6 @@
 
 core:
   image:
-    repository: ghcr.io/mcvavy/tdai-memory-core
+    repository: ghcr.io/mcvavy/labgrid-tdai-memory-core
     tag: "scenario-upsert-20260915"
     pullPolicy: IfNotPresent

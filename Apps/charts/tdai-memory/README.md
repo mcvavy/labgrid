@@ -69,10 +69,10 @@ There are **no** `imagePullSecrets` on the Core Deployment. Do **not** point val
 Build context: [`core-image/`](core-image/) (thin overlay of `agentmemory/memory-core:1.0.1@sha256:9798254a…`).
 
 1. Merge `core-image/` + workflow [`.github/workflows/tdai-memory-core-image.yml`](../../../.github/workflows/tdai-memory-core-image.yml) to `main` (or run **workflow_dispatch**).
-2. Wait for Actions to push `ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915` and set visibility **public**.
+2. Wait for Actions to push `ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915` and set visibility **public**.
 3. Verify anonymous pull:
    ```bash
-   docker pull ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915
+   docker pull ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915
    ```
 4. Apply overlay values (or merge into `values-production.yaml`):
    ```bash
@@ -92,7 +92,7 @@ Build context: [`core-image/`](core-image/) (thin overlay of `agentmemory/memory
 |------|--------|
 | Local build tag | `tdai-memory-core:scenario-upsert-overlay-20260915` |
 | Local digest (Mint host) | `sha256:f4cdd60a4f9dfacdaa80c44560ccb05710cbd7595b0e125b15354f64f20345f1` |
-| GHCR publish | `ghcr.io/mcvavy/tdai-memory-core:scenario-upsert-20260915` |
+| GHCR publish | `ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915` |
 | Patched files | `/app/src/gateway/v2-router.ts`, `/app/src/gateway/v2-schemas.ts` |
 | Semantics | last-writer-wins; PVC layout unchanged |
 

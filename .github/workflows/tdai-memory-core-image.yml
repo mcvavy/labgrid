@@ -1,6 +1,9 @@
 # Build/push the TDAI Memory Core upsert overlay (public GHCR package for cluster pull).
 # Same pattern as arc-runner-image.yml — GITHUB_TOKEN pushes; package made public so
 # tdai-memory Deployment needs no imagePullSecrets.
+#
+# Use labgrid-tdai-memory-core (repo-linked naming like labgrid-actions-runner).
+# Do not use orphan private package tdai-memory-core (unlinked → push denied).
 name: TDAI Memory Core overlay image
 
 on:
@@ -16,8 +19,9 @@ permissions:
   packages: write
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/tdai-memory-core
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/labgrid-tdai-memory-core
   IMAGE_TAG: "scenario-upsert-20260915"
+  PACKAGE_NAME: labgrid-tdai-memory-core
 
 jobs:
   build-push:
@@ -55,10 +59,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # User-owned package visibility (mcvavy). Ignore if already public / org-owned.
           gh api \
             --method PUT \
             -H "Accept: application/vnd.github+json" \
-            "/user/packages/container/tdai-memory-core/visibility" \
+            "/user/packages/container/${PACKAGE_NAME}/visibility" \
             -f visibility=public \
             || true
