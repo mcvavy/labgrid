@@ -8,7 +8,7 @@ Org-level GitHub Actions runner scale set named **labgrid** (`runs-on: labgrid`)
 | Argo app | `gha-runners` → namespace `gha-runners-system` |
 | Controller | `Apps/charts/arc` → `arc-system` |
 | Scale set name | `labgrid` |
-| Capacity | `minRunners: 0`, `maxRunners: 2` |
+| Capacity | `minRunners: 0`, `maxRunners: 4` (2 CPU / 4Gi request, 4 CPU / 8Gi limit) |
 | Container mode | `containerMode.type: dind` (privileged Docker-in-Docker sidecar) |
 | Auth Secret | `github-arc-app` (from ExternalSecret → AKV key **names** only) |
 
