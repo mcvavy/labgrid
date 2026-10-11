@@ -1,0 +1,17 @@
+apiVersion: v2
+name: n8n-rag
+description: Dedicated CloudNativePG cluster with pgvector for n8n RAG / LangChain stores
+type: application
+version: 0.1.0
+# Tracks the custom CNPG+pgvector image tag (must start with PG major.minor).
+appVersion: "17.2"
+dependencies:
+  - name: cluster
+    alias: pgcluster
+    enabled: true
+    version: 0.6.0
+    repository: https://cloudnative-pg.github.io/charts
+maintainers:
+  - name: LabGrid Labs
+    email: admin@labgrid.net
+    url: blog.labgrid.net

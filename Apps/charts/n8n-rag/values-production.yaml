@@ -1,0 +1,102 @@
+# Production values for Labgrid Argo ApplicationSet (values-production.yaml only).
+# Argo app: n8n-rag → namespace n8n-rag-system
+#
+# Image: build/push via .github/workflows/n8n-rag-pgvector-image.yml before first sync
+# succeeds (or after sync, once the package exists on GHCR).
+
+pgcluster:
+  enabled: true
+  type: postgresql
+
+  version:
+    postgresql: "17"
+
+  mode: standalone
+
+  cluster:
+    instances: 1
+    # Custom CNPG image with postgresql-17-pgvector (see image/Dockerfile).
+    imageName: "ghcr.io/mcvavy/labgrid-cnpg-pgvector:17.2"
+    imagePullPolicy: IfNotPresent
+
+    storage:
+      size: 10Gi
+      storageClass: "synology-iscsi-delete"
+
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "2Gi"
+        cpu: "2"
+
+    priorityClassName: ""
+    primaryUpdateMethod: switchover
+    primaryUpdateStrategy: unsupervised
+    logLevel: "info"
+
+    affinity:
+      enablePodAntiAffinity: true
+      topologyKey: topology.kubernetes.io/zone
+
+    enableSuperuserAccess: true
+
+    enablePDB: true
+
+    initdb:
+      database: "n8n_rag"
+      owner: "n8nrag"
+      # Standard pgvector — required by n8n Postgres PGVector Store nodes.
+      postInitApplicationSQL:
+        - CREATE EXTENSION IF NOT EXISTS vector;
+
+  backups:
+    enabled: true
+    # Azure: https://<storageAccount>.blob.core.windows.net/<container>
+    destinationPath: "https://labgrid.blob.core.windows.net/n8n-rag-pg-backup"
+    provider: azure
+    azure:
+      path: "/"
+      connectionString: ""
+      storageAccount: ""
+      storageKey: ""
+      storageSasToken: ""
+      containerName: ""
+      serviceName: blob
+      inheritFromAzureAD: false
+    secret:
+      create: false
+      name: "azure-credential"
+
+    wal:
+      compression: gzip
+      encryption: AES256
+      maxParallel: 1
+    data:
+      compression: gzip
+      encryption: AES256
+      jobs: 2
+
+    scheduledBackups:
+      - name: scheduled-backup
+        schedule: "0 0 0 * * *"
+        backupOwnerReference: self
+        method: barmanObjectStore
+
+    retentionPolicy: "7d"
+
+  externalSecretBackupCredentials:
+    enabled: true
+    name: azure-credential
+    refreshInterval: "1h"
+    secretStoreRef:
+      name: azure-kv-cluster-store
+      kind: ClusterSecretStore
+    data:
+      - secretKey: AZURE_STORAGE_ACCOUNT
+        remoteRef:
+          key: labgrid-storage-account-name
+      - secretKey: AZURE_STORAGE_SAS_TOKEN
+        remoteRef:
+          key: n8n-rag-pg-backup-sas-token
