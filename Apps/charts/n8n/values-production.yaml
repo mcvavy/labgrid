@@ -1,6 +1,5 @@
-# Simple Vector Store (in-memory) used by Chatwoot RAG is per-process.
-# With >1 replica, ingest can land on pod A while chat retrieve hits pod B → empty RAG.
-replicaCount: 1
+# PGVector (n8n-rag-system) is shared across pods — safe to scale again.
+replicaCount: 2
 
 n8nEnvironment:
 - name: N8N_ENCRYPTION_KEY
