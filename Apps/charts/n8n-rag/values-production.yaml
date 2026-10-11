@@ -1,8 +1,5 @@
 # Production values for Labgrid Argo ApplicationSet (values-production.yaml only).
 # Argo app: n8n-rag → namespace n8n-rag-system
-#
-# Image: build/push via .github/workflows/n8n-rag-pgvector-image.yml before first sync
-# succeeds (or after sync, once the package exists on GHCR).
 
 pgcluster:
   enabled: true
@@ -15,8 +12,9 @@ pgcluster:
 
   cluster:
     instances: 1
-    # Custom CNPG image with postgresql-17-pgvector (see image/Dockerfile).
-    imageName: "ghcr.io/mcvavy/labgrid-cnpg-pgvector:17.2"
+    # Official CNPG "standard" image includes pgvector (CREATE EXTENSION vector).
+    # Do not use bare :17.x (bullseye/system) — PGDG bullseye is gone; no vector.
+    imageName: "ghcr.io/cloudnative-pg/postgresql:17.6-standard-bookworm"
     imagePullPolicy: IfNotPresent
 
     storage:

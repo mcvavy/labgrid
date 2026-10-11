@@ -4,6 +4,8 @@ Dedicated PostgreSQL 17 cluster with the standard **pgvector** extension (`CREAT
 
 Separate from the n8n app database (`n8n-system` / `n8n-pgcluster`) so RAG embeddings can scale and restore independently.
 
+Uses the official CNPG image `ghcr.io/cloudnative-pg/postgresql:17.6-standard-bookworm` (pgvector baked in). No custom image build.
+
 ## Prerequisites (Azure + AKV)
 
 Do these before (or right after) the Argo app syncs; backups stay unhealthy until the ExternalSecret resolves.
@@ -26,12 +28,6 @@ Do these before (or right after) the Argo app syncs; backups stay unhealthy unti
    | --- | --- |
    | `labgrid-storage-account-name` | Already present — reused |
    | `n8n-rag-pg-backup-sas-token` | **Create** — SAS token value (no leading `?`) |
-
-4. **GHCR image** (first deploy):
-
-   - Workflow: `.github/workflows/n8n-rag-pgvector-image.yml` (`workflow_dispatch` or push of `image/**`)
-   - Image: `ghcr.io/mcvavy/labgrid-cnpg-pgvector:17.2`
-   - Package should be public (workflow best-effort) so the cluster needs no `imagePullSecrets`
 
 ## What Argo deploys
 
@@ -77,13 +73,3 @@ kubectl -n n8n-rag-system exec -it n8n-rag-pgcluster-1 -- \
 2. Same collection / table name on both (e.g. `tranzzer_policies`).
 3. Keep OpenRouter embeddings credential; dimensions must match the embedding model.
 4. Re-run ingest once, then restore n8n `replicaCount` > 1 if desired (store is shared).
-
-## Local image build (optional)
-
-```bash
-cd Apps/charts/n8n-rag/image
-docker build -t ghcr.io/mcvavy/labgrid-cnpg-pgvector:17.2 .
-docker push ghcr.io/mcvavy/labgrid-cnpg-pgvector:17.2
-```
-
-Do **not** retag as `latest` only — CNPG requires the tag to start with the PostgreSQL version.

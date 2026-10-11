@@ -22,5 +22,3 @@
 *.tmproj
 .vscode/
 # Image build context (published via GitHub Actions, not Helm)
-image/
-README.md

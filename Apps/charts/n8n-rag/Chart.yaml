@@ -3,8 +3,8 @@ name: n8n-rag
 description: Dedicated CloudNativePG cluster with pgvector for n8n RAG / LangChain stores
 type: application
 version: 0.1.0
-# Tracks the custom CNPG+pgvector image tag (must start with PG major.minor).
-appVersion: "17.2"
+# Tracks the CNPG standard-bookworm image minor (includes pgvector).
+appVersion: "17.6"
 dependencies:
   - name: cluster
     alias: pgcluster
