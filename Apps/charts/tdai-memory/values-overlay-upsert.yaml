@@ -1,5 +1,5 @@
-# Reference / optional third values file — already merged into values-production.yaml
-# (Core image: ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915).
+# Reference / optional third values file — merged into values-production.yaml
+# (Core image: ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20261030).
 #
 # Keep this file for helm preview without editing production:
 #   helm template ... -f values.yaml -f values-production.yaml.bak -f values-overlay-upsert.yaml
@@ -8,5 +8,5 @@
 core:
   image:
     repository: ghcr.io/mcvavy/labgrid-tdai-memory-core
-    tag: "scenario-upsert-20260915"
+    tag: "scenario-upsert-20261030"
     pullPolicy: IfNotPresent

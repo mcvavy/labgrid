@@ -2,9 +2,10 @@
 
 core:
   image:
-    # Scenario upsert overlay (public GHCR). Rollback: agentmemory/memory-core:1.0.1
+    # Scenario upsert overlay on Core 1.0.3 (public GHCR).
+    # Rollback: scenario-upsert-20260915 or agentmemory/memory-core:1.0.1
     repository: ghcr.io/mcvavy/labgrid-tdai-memory-core
-    tag: "scenario-upsert-20260915"
+    tag: "scenario-upsert-20261030"
     pullPolicy: IfNotPresent
   httpRoute:
     hostnames:
@@ -22,7 +23,7 @@ core:
 hub:
   image:
     repository: agentmemory/memory-hub
-    tag: "1.0.1-beta.2"
+    tag: "1.0.3"
     pullPolicy: IfNotPresent
   panel:
     httpRoute:

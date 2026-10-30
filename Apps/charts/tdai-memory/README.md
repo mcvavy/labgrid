@@ -53,20 +53,20 @@ az keyvault secret set --vault-name labgrid --name tdai-memory-backup-sas-token 
 
 ## Scenario upsert overlay (L2 create without kubectl)
 
-Official Memory Core `POST /v3/scenario/write` is **update-only** (404 if the path is missing). Newer prerelease Docker tags (`1.0.2-beta.1` / `latest`) still lack authenticated create.
+Official Memory Core `POST /v3/scenario/write` is **update-only** (404 if the path is missing). Stock `1.0.3` still lacks authenticated create — Labgrid uses a thin GHCR overlay.
 
 ### Production images (what Argo uses)
 
 | Component | Image | Why |
 |-----------|--------|-----|
-| Core | `ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915` | Public GHCR overlay — authenticated L2 create via upsert |
-| Hub | `agentmemory/memory-hub:1.0.1-beta.2` | Same pin as before — avoids Hub upgrade risk |
+| Core | `ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20261030` | Overlay on Core **1.0.3** (product v2.0.3) — L2 create via upsert |
+| Hub | `agentmemory/memory-hub:1.0.3` | Lockstep with Core 1.0.3 |
 
-Chart defaults in `values.yaml` stay on Docker Hub `agentmemory/memory-core:1.0.1`. There are **no** `imagePullSecrets` on Core — the GHCR package must remain **public**.
+Chart defaults in `values.yaml` stay on Docker Hub `agentmemory/memory-core:1.0.3` / `memory-hub:1.0.3`. There are **no** `imagePullSecrets` on Core — the GHCR package must remain **public**.
 
 ### Overlay build / republish
 
-Build context: [`core-image/`](core-image/) (thin overlay of `agentmemory/memory-core:1.0.1@sha256:9798254a…`). Workflow: [`.github/workflows/tdai-memory-core-image.yml`](../../../.github/workflows/tdai-memory-core-image.yml).
+Build context: [`core-image/`](core-image/) (thin overlay of `agentmemory/memory-core:1.0.3@sha256:a5ad57a4…`). Workflow: [`.github/workflows/tdai-memory-core-image.yml`](../../../.github/workflows/tdai-memory-core-image.yml).
 
 Reference overlay keys: [`values-overlay-upsert.yaml`](values-overlay-upsert.yaml) (merged into `values-production.yaml`).
 
@@ -80,13 +80,12 @@ curl -fsS -H "Authorization: Bearer $TDAI_GATEWAY_BEARER" \
 
 | Item | Value |
 |------|--------|
-| Local build tag | `tdai-memory-core:scenario-upsert-overlay-20260915` |
-| Local digest (Mint host) | `sha256:f4cdd60a4f9dfacdaa80c44560ccb05710cbd7595b0e125b15354f64f20345f1` |
-| GHCR publish | `ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915` |
+| Local build tag | `tdai-memory-core:scenario-upsert-overlay-20261030` |
+| GHCR publish | `ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20261030` |
 | Patched files | `/app/src/gateway/v2-router.ts`, `/app/src/gateway/v2-schemas.ts` |
 | Semantics | last-writer-wins; PVC layout unchanged |
 
-**Rollback Core:** `agentmemory/memory-core:1.0.1` (or prior `1.0.1-beta.1`). Hub stays `1.0.1-beta.2` unless you changed it.
+**Rollback Core:** `scenario-upsert-20260915` or stock `agentmemory/memory-core:1.0.1`. Hub rollback: `1.0.1-beta.2`.
 
 MCP clients (`tdai-mcp`) call upsert first, then fall back to write; they never use kubectl/PVC access.
 
