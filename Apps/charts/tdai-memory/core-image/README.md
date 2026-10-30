@@ -6,11 +6,11 @@ Thin overlay of the latest **stable** Memory Core image so authenticated clients
 
 | Field | Value |
 |-------|--------|
-| Image | `agentmemory/memory-core:1.0.1` |
-| Manifest digest | `sha256:9798254a8cc06276b7c5b3c19df49f136fae25d579564e1f01f9c4b9b8cd2d11` |
-| amd64 digest | `sha256:e4c0f4e61a922d05eef3ff1a55515f28b9e99117ad177b2fc7e6625fb2607de7` |
+| Image | `agentmemory/memory-core:1.0.3` (product v2.0.3) |
+| amd64 digest | `sha256:a5ad57a47540b0a1be2cb77b0bac7c47dca38c99d2db7d20f9d512c714928280` |
+| index digest | `sha256:342331d5ccdb31ce84ac1ba205aa0b1a8b16a13fe71b6a104d17d41197eb7112` |
 
-Not used as base: older Labgrid pin `1.0.1-beta.1`, or prerelease `1.0.2-beta.1` / `latest`. Gateway L2 write/upsert sources match `1.0.1-beta.1` for the two patched files; other Core packages differ in `1.0.1`.
+Gateway sources match GitHub tag `v2.0.3`. Not used as base: floating `latest`, or older `1.0.1` / `1.0.2`.
 
 ## Changed files
 
@@ -29,28 +29,21 @@ Not used as base: older Labgrid pin `1.0.1-beta.1`, or prerelease `1.0.2-beta.1`
 - **Last-writer-wins** (storage has no exclusive create / CAS).
 - PVC layout unchanged.
 
-## Local build (not required for safe Argo sync)
+## Local build
 
-Chart defaults use stock Docker Hub `agentmemory/memory-core:1.0.1`. Publish the overlay before flipping Argo to GHCR (see chart README + `values-overlay-upsert.yaml`).
+Chart defaults use stock Docker Hub `agentmemory/memory-core:1.0.3`. Labgrid Argo uses the public GHCR overlay (see chart README + `values-overlay-upsert.yaml`).
 
 ```bash
 cd Apps/charts/tdai-memory/core-image
 docker build --platform linux/amd64 \
-  -t tdai-memory-core:scenario-upsert-overlay-20260915 \
+  -t tdai-memory-core:scenario-upsert-overlay-20261030 \
   .
 # Prefer: GitHub Actions workflow "TDAI Memory Core overlay image"
-# Or local:
-#   docker tag ... ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915
-#   docker push ...
-#   gh api --method PUT .../labgrid-tdai-memory-core/visibility -f visibility=public
 ```
 
-Proposed publish name:  
-`ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915`
-
-Built locally on 2026-09-15 (linux/amd64), image id / digest:  
-`sha256:f4cdd60a4f9dfacdaa80c44560ccb05710cbd7595b0e125b15354f64f20345f1`
+Publish name:  
+`ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20261030`
 
 ## Rollback
 
-Pin Core back to stock `agentmemory/memory-core:1.0.1` (or previous Labgrid `1.0.1-beta.1` if reverting the whole upgrade). Existing data on the PVC stays valid for the same storage layout.
+Pin Core back to `ghcr.io/mcvavy/labgrid-tdai-memory-core:scenario-upsert-20260915` or stock `agentmemory/memory-core:1.0.1`. Existing PVC data stays valid for the same storage layout.

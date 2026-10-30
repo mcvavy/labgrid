@@ -20,7 +20,7 @@ permissions:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/labgrid-tdai-memory-core
-  IMAGE_TAG: "scenario-upsert-20260915"
+  IMAGE_TAG: "scenario-upsert-20261030"
   PACKAGE_NAME: labgrid-tdai-memory-core
 
 jobs:
