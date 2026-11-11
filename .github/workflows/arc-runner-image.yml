@@ -15,7 +15,9 @@ permissions:
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/labgrid-actions-runner
-  IMAGE_TAG: "0.1.0"
+  IMAGE_TAG: "0.2.0"
+  # Keep in sync with Apps/charts/gha-runners/runner-image/Dockerfile ARG BASE_TAG.
+  BASE_TAG: "2.338.2"
 
 jobs:
   build-push:
@@ -41,6 +43,8 @@ jobs:
           context: Apps/charts/gha-runners/runner-image
           file: Apps/charts/gha-runners/runner-image/Dockerfile
           push: true
+          build-args: |
+            BASE_TAG=${{ env.BASE_TAG }}
           tags: |
             ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
             ${{ env.IMAGE_NAME }}:latest

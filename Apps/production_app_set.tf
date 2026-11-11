@@ -46,6 +46,19 @@ resource "argocd_application_set" "production" {
           # Deployment.status.terminatingReplicas). Chart pin: Base argocd 10.2.2 / v3.4.6.
           sync_options = ["CreateNamespace=true", "ServerSideApply=true"]
         }
+
+        # ARC controller owns scale-set annotations/status; ESO owns ExternalSecret
+        # refresh annotations. Ignoring them stops Argo thrash on gha-runners.
+        ignore_difference {
+          group              = "actions.github.com"
+          kind               = "AutoscalingRunnerSet"
+          jqpath_expressions = [".metadata.annotations", ".metadata.labels", ".status"]
+        }
+        ignore_difference {
+          group              = "external-secrets.io"
+          kind               = "ExternalSecret"
+          jqpath_expressions = [".metadata.annotations", ".status"]
+        }
       }
     }
   }

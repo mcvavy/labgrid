@@ -3,7 +3,9 @@
 # (pnpm standalone binary + Playwright Chromium).
 #
 # Pin BASE_TAG when bumping; rebuild before changing the chart image tag.
-ARG BASE_TAG=latest
+# ARC registers scale sets with DisableUpdate=true, so an old runner binary
+# exits with code 7 ("outdated") and ARC 0.14.2 tears the whole scale set down.
+ARG BASE_TAG=2.338.2
 FROM ghcr.io/actions/actions-runner:${BASE_TAG}
 
 USER root
